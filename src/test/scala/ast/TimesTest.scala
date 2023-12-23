@@ -7,7 +7,8 @@ class TimesTest extends AbstractScompTest {
     ("left", "right", "prefix"),
     (Num(1), Num(2), "(* 1 2)"),
     (Plus(Num(1), Num(2)), Num(3), "(* (+ 1 2) 3)"),
-    (Num(1), Times(Num(2), Num(3)), "(* 1 (* 2 3))")
+    (Num(1), Times(Num(2), Num(3)), "(* 1 (* 2 3))"),
+    (Plus(Num(1), Num(2)), Times(Num(3), Var("x")), "(* (+ 1 2) (* 3 x))")
   )
 
   "A Times operation" - {
