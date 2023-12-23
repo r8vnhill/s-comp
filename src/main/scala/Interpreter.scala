@@ -3,6 +3,8 @@ package cl.ravenhill.scomp
 
 import ast.*
 
+import scala.util.{Failure, Try}
+
 /**
  * Evaluates an expression represented by the `Expr` trait in the given environment.
  *
@@ -18,15 +20,17 @@ import ast.*
  * @return The integer result of evaluating the expression.
  * @throws Exception if the expression type is unknown or unsupported.
  */
-def interpret(env: Environment, expr: Expr): Int = {
+def interpret(env: Environment, expr: Expr): Try[Int] = {
   expr match {
     case Var(x) => env(x) // Retrieves the value of the variable `x` from the environment.
-    case Num(n) => n // Returns the integer value `n` for numerical constants.
+    case Num(n) => Try(n) // Returns the integer value `n` for numerical constants.
     case Plus(left, right) =>
-      interpret(env, left) + interpret(env, right) // Recursively evaluates and adds the left and right operands.
+      interpret(env, left).flatMap(l => 
+        interpret(env, right).map(r => l + r)) // Recursively evaluates and adds the left and right operands.
     case Times(left, right) =>
-      interpret(env, left) * interpret(env, right) // Recursively evaluates and multiplies the left and right operands.
-    case _ => throw new Exception("Unknown expression") // Throws an exception for unsupported expression types.
+      interpret(env, left).flatMap(l => 
+        interpret(env, right).map(r => l * r)) // Recursively evaluates and multiplies the left and right operands.
+    case _ => Failure[Int](new Exception(s"Unknown expression: $expr"))
   }
 }
 

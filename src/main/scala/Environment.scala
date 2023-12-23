@@ -1,5 +1,7 @@
 package cl.ravenhill.scomp
 
+import scala.util.Try
+
 /** Represents an environment for variable bindings in expressions.
   *
   * The `Environment` class encapsulates a mapping of variable names (as strings) to their integer values. This mapping
@@ -19,7 +21,7 @@ class Environment(private var env: Map[String, Int] = Map.empty[String, Int]) {
     * @return The integer value associated with the given variable name.
     * @throws NoSuchElementException if the variable name is not found in the environment.
     */
-  def apply(name: String): Int = env(name)
+  def apply(name: String): Try[Int] = Try(env(name))
 }
 
 /** Companion object for the `Environment` class.
