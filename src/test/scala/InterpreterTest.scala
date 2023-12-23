@@ -40,4 +40,44 @@ class InterpreterTest extends AbstractScompTest {
       }
     }
   }
+
+  "A simplifier" - {
+    "should simplify expressions with zero" - {
+      "in addition on the left" in {
+        simplify(ast.Plus(ast.Num(0), ast.Var("x"))) should be(ast.Var("x"))
+      }
+
+      "in addition on the right" in {
+        simplify(ast.Plus(ast.Var("x"), ast.Num(0))) should be(ast.Var("x"))
+      }
+
+      "in multiplication on the left" in {
+        simplify(ast.Times(ast.Num(0), ast.Var("x"))) should be(ast.Num(0))
+      }
+
+      "in multiplication on the right" in {
+        simplify(ast.Times(ast.Var("x"), ast.Num(0))) should be(ast.Num(0))
+      }
+    }
+
+    "should simplify expressions with one in multiplication" - {
+      "on the left" in {
+        simplify(ast.Times(ast.Num(1), ast.Var("x"))) should be(ast.Var("x"))
+      }
+
+      "on the right" in {
+        simplify(ast.Times(ast.Var("x"), ast.Num(1))) should be(ast.Var("x"))
+      }
+    }
+
+    "should not change already simplified expressions" in {
+      val expr = ast.Var("x")
+      simplify(expr) should be(expr)
+    }
+
+    "should simplify nested expressions" in {
+      val expr = ast.Plus(ast.Num(0), ast.Plus(ast.Var("x"), ast.Num(0)))
+      simplify(expr) should be(ast.Var("x"))
+    }
+  }
 }
