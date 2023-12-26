@@ -1,34 +1,80 @@
-
 package cl.ravenhill.scomp
 
+import ast.EOF
+
+import org.scalacheck.Gen
+import org.scalatest.Inside.inside
+
+import scala.util.Success
+
 class ParserTest extends AbstractScompTest {
-  "Parsing an expression" - {
-    "should correctly parse a number" in {
-      parse("1") should be (ast.Num(1))
+
+  "An empty string should result in an empty AST" in {
+    parse("") should matchPattern { case util.Success(EOF) =>
+    }
+  }
+
+  "Parsing an invalid expression should result in an error" in {
+    forAll(Gen.alphaStr.filterNot(_.isInt).filterNot(_.isBlank)) { (expr: String) =>
+      parse(expr) should matchPattern { case util.Failure(ParserException(_)) => }
+    }
+  }
+
+  "A Natural number should be parsed correctly" in {
+    forAll { (expected: Int) =>
+      inside(parse(expected.toString)) { case Success(ast.Num(actual)) =>
+        actual should be(expected)
+      }
+    }
+  }
+
+  "When parsing an addition" - {
+    "the left and right operands should be parsed correctly" in {
+      forAll { (left: Int, right: Int) =>
+        inside(parse(s"+ $left $right")) { case Success(ast.Plus(actualLeft, actualRight)) =>
+          actualLeft should matchPattern { case ast.Num(`left`) => }
+          actualRight should matchPattern { case ast.Num(`right`) => }
+        }
+      }
     }
 
-    "should correctly parse a variable" in {
-      parse("x") should be (ast.Var("x"))
+    "should result in an error when the left operand is missing" in {
+      forAll { (right: Int) =>
+        parse(s"+ $right") should matchPattern { case util.Failure(ParserException(_)) => }
+      }
+    }
+  }
+
+  "When parsing a multiplication" - {
+    "the left and right operands should be parsed correctly" in {
+      forAll { (left: Int, right: Int) =>
+        inside(parse(s"* $left $right")) { case Success(ast.Times(actualLeft, actualRight)) =>
+          actualLeft should matchPattern { case ast.Num(`left`) => }
+          actualRight should matchPattern { case ast.Num(`right`) => }
+        }
+      }
     }
 
-    "should correctly parse an addition expression" in {
-      parse("+ 1 2") should be (ast.Plus(ast.Num(1), ast.Num(2)))
+    "should result in an error when the left operand is missing" in {
+      forAll { (right: Int) =>
+        parse(s"* $right") should matchPattern { case util.Failure(ParserException(_)) => }
+      }
     }
+  }
 
-    "should correctly parse a multiplication expression" in {
-      parse("* 1 2") should be (ast.Times(ast.Num(1), ast.Num(2)))
-    }
-
-    "should throw an IllegalArgumentException when parsing an invalid addition" in {
-      a [IllegalArgumentException] should be thrownBy parse("+ 1")
-    }
-
-    "should throw an IllegalArgumentException when parsing an invalid multiplication" in {
-      a [IllegalArgumentException] should be thrownBy parse("* 1")
-    }
-
-    "should correctly parse nested expressions" in {
-      parse("+ 1 * 2 3") should be (ast.Plus(ast.Num(1), ast.Times(ast.Num(2), ast.Num(3))))
+  "When parsing nested expressions" - {
+    val expressions = Table(
+      ("expression", "parsed"),
+      ("+ * 0 0 2", ast.Plus(ast.Times(ast.Num(0), ast.Num(0)), ast.Num(2))),
+      ("* + 1 2 3", ast.Times(ast.Plus(ast.Num(1), ast.Num(2)), ast.Num(3))),
+      ("+ * 1 2 * 3 4", ast.Plus(ast.Times(ast.Num(1), ast.Num(2)), ast.Times(ast.Num(3), ast.Num(4)))),
+    )
+    "the left and right operands should be parsed correctly" in {
+      forAll(expressions) { (expression: String, expected: ast.Expr) =>
+        inside(parse(expression)) { case Success(actual) =>
+          actual should matchPattern { case `expected` => }
+        }
+      }
     }
   }
 }
