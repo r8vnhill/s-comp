@@ -1,6 +1,8 @@
 package cl.ravenhill.scomp
 
-import ast.EOF
+import ast.binary.{Plus, Times}
+import ast.terminal.*
+import ast.{binary, terminal}
 
 import org.scalacheck.Gen
 import org.scalatest.Inside.inside
@@ -10,30 +12,47 @@ import scala.util.Success
 class ParserTest extends AbstractScompTest {
 
   "An empty string should result in an empty AST" in {
-    parse("") should matchPattern { case util.Success(EOF) =>
-    }
+    parse("") should matchPattern { case util.Success(EOF) => }
   }
 
   "Parsing an invalid expression should result in an error" in {
-    forAll(Gen.alphaStr.filterNot(_.isInt).filterNot(_.isBlank)) { (expr: String) =>
+    forAll(
+      Gen.asciiPrintableStr
+        .filterNot(_.isInt)
+        .filterNot(_.isBlank)
+        .filterNot(_.matches("""[a-zA-Z][a-zA-Z0-9]*"""))
+    ) { (expr: String) =>
       parse(expr) should matchPattern { case util.Failure(ParserException(_)) => }
     }
   }
 
   "A Natural number should be parsed correctly" in {
     forAll { (expected: Int) =>
-      inside(parse(expected.toString)) { case Success(ast.Num(actual)) =>
-        actual should be(expected)
+      inside(parse(expected.toString)) { case Success(Num(actual)) => actual should be(expected) }
+    }
+  }
+
+  "A Boolean should be parsed correctly" in {
+    forAll { (expected: Boolean) =>
+      inside(parse(expected.toString)) {
+        case Success(True)  => expected should be(true)
+        case Success(False) => expected should be(false)
       }
+    }
+  }
+
+  "A variable should be parsed correctly" in {
+    forAll(Gen.alphaNumStr.filter(_.matches("""[a-zA-Z][a-zA-Z0-9]*"""))) { (expected: String) =>
+      inside(parse(expected)) { case Success(Var(actual)) => actual should be(expected) }
     }
   }
 
   "When parsing an addition" - {
     "the left and right operands should be parsed correctly" in {
       forAll { (left: Int, right: Int) =>
-        inside(parse(s"+ $left $right")) { case Success(ast.Plus(actualLeft, actualRight)) =>
-          actualLeft should matchPattern { case ast.Num(`left`) => }
-          actualRight should matchPattern { case ast.Num(`right`) => }
+        inside(parse(s"+ $left $right")) { case Success(Plus(actualLeft, actualRight)) =>
+          actualLeft should matchPattern { case Num(`left`) => }
+          actualRight should matchPattern { case Num(`right`) => }
         }
       }
     }
@@ -48,9 +67,9 @@ class ParserTest extends AbstractScompTest {
   "When parsing a multiplication" - {
     "the left and right operands should be parsed correctly" in {
       forAll { (left: Int, right: Int) =>
-        inside(parse(s"* $left $right")) { case Success(ast.Times(actualLeft, actualRight)) =>
-          actualLeft should matchPattern { case ast.Num(`left`) => }
-          actualRight should matchPattern { case ast.Num(`right`) => }
+        inside(parse(s"* $left $right")) { case Success(Times(actualLeft, actualRight)) =>
+          actualLeft should matchPattern { case Num(`left`) => }
+          actualRight should matchPattern { case Num(`right`) => }
         }
       }
     }
@@ -65,9 +84,13 @@ class ParserTest extends AbstractScompTest {
   "When parsing nested expressions" - {
     val expressions = Table(
       ("expression", "parsed"),
-      ("+ * 0 0 2", ast.Plus(ast.Times(ast.Num(0), ast.Num(0)), ast.Num(2))),
-      ("* + 1 2 3", ast.Times(ast.Plus(ast.Num(1), ast.Num(2)), ast.Num(3))),
-      ("+ * 1 2 * 3 4", ast.Plus(ast.Times(ast.Num(1), ast.Num(2)), ast.Times(ast.Num(3), ast.Num(4)))),
+      ("+ * 0 0 2", binary.Plus(binary.Times(terminal.Num(0), terminal.Num(0)), terminal.Num(2))),
+      ("* + 1 2 3", binary.Times(binary.Plus(terminal.Num(1), terminal.Num(2)), terminal.Num(3))),
+      (
+        "+ * 1 2 * 3 4",
+        binary.Plus(binary.Times(terminal.Num(1), terminal.Num(2)), binary.Times(terminal.Num(3), terminal.Num(4)))
+      ),
+      ("* + x 1 2", binary.Times(binary.Plus(terminal.Var("x"), terminal.Num(1)), terminal.Num(2)))
     )
     "the left and right operands should be parsed correctly" in {
       forAll(expressions) { (expression: String, expected: ast.Expr) =>

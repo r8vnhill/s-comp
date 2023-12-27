@@ -1,5 +1,7 @@
 package cl.ravenhill.scomp
-package ast
+package ast.terminal
+
+import ast.Expr
 
 /** Represents a numerical constant in an expression.
   *

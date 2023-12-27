@@ -2,6 +2,8 @@
 package cl.ravenhill.scomp
 package ast
 
+import ast.terminal.Num
+
 class NumTest extends AbstractScompTest {
   "A number" - {
     "should have a value property that is set according to the constructor argument" in {

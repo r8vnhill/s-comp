@@ -1,5 +1,7 @@
 package cl.ravenhill.scomp
-package ast
+package ast.terminal
+
+import ast.Expr
 
 /** Represents boolean expressions in a simple expression language.
   *

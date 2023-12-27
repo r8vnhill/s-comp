@@ -1,7 +1,8 @@
-
 package cl.ravenhill.scomp
 package ast
 
-case class If (cond: Bool, trueBranch: Expr, falseBranch: Expr) extends Expr {
-  override def toPrefix: String = s"(if ${cond.toPrefix} ${trueBranch.toPrefix} ${falseBranch.toPrefix})"
+import ast.terminal.Bool
+
+case class If(cond: Bool, thenBranch: Expr, elseBranch: Expr) extends Expr {
+  override def toPrefix: String = s"(if ${cond.toPrefix} then ${thenBranch.toPrefix} else ${elseBranch.toPrefix})"
 }

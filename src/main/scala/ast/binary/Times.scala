@@ -1,5 +1,7 @@
 package cl.ravenhill.scomp
-package ast
+package ast.binary
+
+import ast.Expr
 
 /** Represents a multiplication operation in an expression.
   *

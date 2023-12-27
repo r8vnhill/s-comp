@@ -1,5 +1,7 @@
 package cl.ravenhill.scomp
-package ast
+package ast.terminal
+
+import ast.Expr
 
 /** Represents an End-Of-File (EOF) marker in the context of expression parsing.
   *

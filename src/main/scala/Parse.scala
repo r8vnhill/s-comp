@@ -4,7 +4,7 @@ import ast.Expr
 
 import scala.util.{Failure, Success, Try}
 
-extension (s: String) {
+extension (s: String)
 
   /** Extension method for the `String` class to check if a string represents an integer value.
     *
@@ -30,48 +30,71 @@ extension (s: String) {
     *   }}}
     */
   def isInt: Boolean = s.matches("""-?\b0*\d+\b""")
-}
 
-def parse(s: String): Try[Expr] = {
+  /** Extension method for the `String` class to check if a string represents a boolean value.
+    *
+    * This method extends the `String` class with the functionality to determine whether the string matches the textual
+    * representation of boolean values, specifically "true" or "false". It utilizes a regular expression to check if the
+    * string exactly matches either of these two values.
+    *
+    * The regular expression used (`true|false`) checks for:
+    *   - A direct match with the string "true".
+    *   - A direct match with the string "false".
+    *
+    * This method is particularly useful for parsing or validating input where boolean values are expected in a textual
+    * form.
+    *
+    * @return
+    *   `true` if the string is either "true" or "false", `false` otherwise.
+    * @example
+    *   {{{
+    *   "true".isBool  // returns true
+    *   "false".isBool // returns true
+    *   "True".isBool  // returns false (case-sensitive)
+    *   "1".isBool     // returns false
+    *   "yes".isBool   // returns false
+    *   }}}
+    */
+  def isBool: Boolean = s.matches("""true|false""")
 
-  def parseTokens(tokens: Seq[String]): Try[(Expr, Seq[String])] = tokens match {
-    case Seq() => Failure(ParserException("Empty input"))
-    case Seq(n, rest*) if n.isInt => Success((ast.Num(n.toInt), rest))
-    case Seq("+", rest*) =>
-      for {
-        (leftExpr, afterLeft) <- parseTokens(rest)
-        (rightExpr, afterRight) <- parseTokens(afterLeft)
-      } yield (ast.Plus(leftExpr, rightExpr), afterRight)
-    case Seq("*", rest*) =>
-      for {
-        (leftExpr, afterLeft) <- parseTokens(rest)
-        (rightExpr, afterRight) <- parseTokens(afterLeft)
-      } yield (ast.Times(leftExpr, rightExpr), afterRight)
-    case _ => Failure(ParserException(s"Invalid input: ${tokens.mkString(" ")}"))
-  }
+  def isBlank: Boolean = s.trim.isEmpty
 
-  val input = s.trim.split("\\s+")
-  if (input.isEmpty || (input.size == 1 && input.head.isEmpty)) Success(ast.EOF)
-  else parseTokens(input).flatMap {
-    case (expr, Seq()) => Success(expr)
-    case (_, remaining) => Failure(ParserException(s"Unparsed input remaining: ${remaining.mkString(" ")}"))
-  }
-}
-
-
-/** A `Try` wrapper for the `EOF` object from the `ast` package.
+/** Parses a string into an expression object, handling the input in prefix notation.
   *
-  * `tryEof` is a private value that encapsulates the `EOF` object within a `Try` context. This is primarily used to
-  * handle scenarios where an End-Of-File (EOF) marker needs to be returned or processed in a safe, exception-handling
-  * manner. Wrapping `EOF` in `Try` allows for consistent error handling in functions or methods that might encounter or
-  * return `EOF` as part of normal operation, especially in parsing or interpreting contexts where EOF signifies the end
-  * of input.
+  * This function attempts to parse a given string into an [[Expr]] object, representing a structured expression. It is
+  * designed to handle input formatted in prefix notation, where the operator precedes its operands. The parsing process
+  * involves splitting the input string into tokens based on whitespace and processing these tokens recursively to
+  * construct the expression tree.
   *
-  * The `EOF` object is obtained from the `ast` package, and it represents an End-Of-File marker in expression parsing
-  * or evaluation scenarios. By wrapping it in `Try`, `tryEof` ensures that any operations involving `EOF` can leverage
-  * Scala's built-in error handling mechanisms, enhancing robustness and reliability.
+  * The function handles the following cases:
+  *   - Empty input: Returns a failure indicating that the input is empty.
+  *   - Integer literals: Parses numeric strings into `Num` objects.
+  *   - Boolean literals: Parses boolean strings into `True` and `False` objects.
+  *   - Addition and Multiplication: Recognizes '+' and '*' as operators and recursively constructs `Plus` and `Times`
+  *     expressions with the corresponding operands.
+  *   - Variables: Parses variable names into `Var` objects.
+  *   - Remaining cases: Returns a failure for any input that doesn't match the expected patterns.
   *
-  * As a private value, `tryEof` is intended for internal use within its containing class or object, encapsulating the
-  * specifics of handling an EOF condition in a way that's abstracted away from external components.
+  * If the input string is empty or contains only whitespace, the function returns `EOF` (End-Of-File) marker as a
+  * successful result. Otherwise, it attempts to parse the input and returns either the parsed expression or an error if
+  * the input is invalid or incomplete.
+  *
+  * @param s
+  *   The input string to be parsed.
+  * @return
+  *   A `Try[Expr]` representing either the successfully parsed expression (`Success[Expr]`) or an error
+  *   (`Failure[ParserException]`) if the parsing fails.
   */
-private val tryEof = Try(ast.EOF)
+def parse(s: String): Try[Expr] = {
+  val variablePattern = """([a-zA-Z][a-zA-Z0-9]*)""".r
+  val additionPattern = """\+ (.*) (.*)""".r
+  val productPattern  = """\* (.*) (.*)""".r
+  s match
+    case _ if s.isBlank        => Success(ast.terminal.EOF)
+    case _ if s.isInt          => Success(ast.terminal.Num(s.toInt))
+    case _ if s.isBool         => Success(if s.toBoolean then ast.terminal.True else ast.terminal.False)
+    case variablePattern(name) => Success(ast.terminal.Var(name))
+    case additionPattern(l, r) => parse(l).flatMap(l => parse(r).map(r => ast.binary.Plus(l, r)))
+    case productPattern(l, r)  => parse(l).flatMap(l => parse(r).map(r => ast.binary.Times(l, r)))
+    case _                     => Failure(ParserException(s"Invalid input: $s"))
+}

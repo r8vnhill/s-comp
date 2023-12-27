@@ -1,6 +1,8 @@
 package cl.ravenhill.scomp
 package ast
 
+import ast.terminal.Var
+
 class VarTest extends AbstractScompTest {
 
   "A Var expression" - {
