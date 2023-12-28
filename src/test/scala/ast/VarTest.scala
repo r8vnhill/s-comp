@@ -14,7 +14,7 @@ class VarTest extends AbstractScompTest {
 
     "can be converted to prefix notation" in {
       forAll { (sym: String) =>
-        Var(sym).toPrefix should be(sym)
+        Var(sym).toString should be(sym)
       }
     }
   }

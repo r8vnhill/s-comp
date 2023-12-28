@@ -21,5 +21,5 @@ case class Num(n: Int) extends Expr {
     * @return A `String` representing the numerical constant. For instance, if `n` is 5, the `toPrefix` method will
     *         return "5".
     */
-  override def toPrefix: String = n.toString
+  override def toString: String = n.toString
 }

@@ -19,7 +19,7 @@ sealed trait Bool extends Expr
 case object True extends Bool {
 
   /** Returns the prefix representation of the boolean value `true`. */
-  override def toPrefix: String = "true"
+  override def toString: String = "true"
 }
 
 /** Represents the boolean value `false`.
@@ -30,5 +30,5 @@ case object True extends Bool {
 case object False extends Bool {
 
   /** Returns the prefix representation of the boolean value `false`. */
-  override def toPrefix: String = "false"
+  override def toString: String = "false"
 }

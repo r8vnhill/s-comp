@@ -33,5 +33,6 @@ trait Expr {
     *
     * @return A `String` representing the expression in prefix notation.
     */
-  def toPrefix: String
+  @deprecated("This method is bound to be removed, use `toString` instead.")
+  def toPrefix: String = ???
 }

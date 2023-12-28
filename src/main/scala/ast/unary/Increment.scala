@@ -15,16 +15,13 @@ import ast.Expr
   */
 case class Increment(expr: Expr) extends Expr {
 
-  /** Converts the increment expression into its prefix notation.
+  /** Returns the string representation of this expression.
     *
-    * This method overrides the `toPrefix` method from the `Expr` trait and provides the specific implementation for the
-    * increment expression. In prefix notation, the increment operator (inc) precedes the operand. The method converts
-    * the entire increment expression into a string representation in prefix form, suitable for parsing, interpretation,
-    * or display.
+    * This method overrides the `toString` method inherited from the `Expr` trait. It returns a string representation of
+    * this expression, which is the string representation of the `expr` field, with the `++` operator prepended.
     *
     * @return
-    *   A `String` representing the increment expression in prefix notation. For example, incrementing a numeric literal
-    *   `1` would be represented as "(inc 1)" in prefix notation.
+    *   The string representation of this expression.
     */
-  override def toPrefix: String = s"(inc ${expr.toPrefix})"
+  override def toString: String = s"++($expr)"
 }

@@ -17,27 +17,27 @@ class CompileTest extends AbstractScompTest {
   }
 
   "Compiling an increment expression" - {
-    "should return a list containing the compiled subexpression followed by an addition" in {
+    "compiles the subexpression and appends an increment to the list" in {
       forAll(Gen.expr()) { e =>
         val result = compileExpression(Increment(e))
         result should have size(compileExpression(e).size + 1)
-        result.last should be(Add(Reg(Rax), Const(1)))
+        result.last should be(Inc(Reg(Rax)))
       }
     }
   }
 
   "Compiling a decrement expression" - {
-    "should return a list containing the compiled subexpression followed by an addition" in {
+    "compiles the subexpression and appends a decrement to the list" in {
       forAll(Gen.expr()) { e =>
         val result = compileExpression(Decrement(e))
         result should have size(compileExpression(e).size + 1)
-        result.last should be(Add(Reg(Rax), Const(-1)))
+        result.last should be(Dec(Reg(Rax)))
       }
     }
   }
 
   "Compiling a doubled expression" - {
-    "should return a list containing the compiled subexpression followed by n additions" in {
+    "compiles the subexpression and appends an addition to the list" in {
       forAll(Gen.expr()) { e =>
         val result = compileExpression(Doubled(e))
         result should have size (compileExpression(e).size + 1)

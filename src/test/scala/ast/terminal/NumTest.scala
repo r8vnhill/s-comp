@@ -1,6 +1,6 @@
 
 package cl.ravenhill.scomp
-package ast
+package ast.terminal
 
 import ast.terminal.Num
 
@@ -14,7 +14,7 @@ class NumTest extends AbstractScompTest {
     
     "can be converted to prefix notation" in {
       forAll { (n: Int) =>
-        Num(n).toPrefix should be (n.toString)
+        Num(n).toString should be (n.toString)
       }
     }
   }

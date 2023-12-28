@@ -151,29 +151,50 @@ abstract class AbstractScompTest extends AnyFreeSpec with should.Matchers with S
     protected def decrement(maxDepth: Int = 5): Gen[ast.unary.Decrement] =
       gen.const(ast.unary.Decrement(expr(maxDepth - 1).sample.get))
 
-    /** Generates a random instance of a unary function expression, either an increment or a decrement, within the `ast`
-      * package.
+    /** Generates a `Let` expression for testing purposes.
       *
-      * This method extends the `Gen` object to create a generator for unary function expressions, specifically
-      * instances of increment and decrement operations encapsulated within the `Expr` class. The generated expressions
-      * are suitable for contexts such as property-based testing, where diverse instances of expressions are beneficial
-      * for thorough evaluation of expression handling logic.
-      *
-      * The complexity of the nested expressions within the unary functions is controlled by the `maxDepth` parameter.
-      * This parameter allows for the creation of expressions with varying levels of complexity, accommodating both
-      * simple and more complex expression structures.
+      * This protected method creates a generator for `Let` expressions, which are part of the AST (Abstract Syntax
+      * Tree). It uses a string generator for variable names and recursively generates the expressions for `Let`
+      * bindings. This method is particularly useful in property-based testing, where various instances of `Let`
+      * expressions are required.
       *
       * @param maxDepth
-      *   The maximum depth of the expression tree, defaulting to 5. This parameter dictates the complexity of the
-      *   nested expressions within the generated unary function expression. A `maxDepth` of 0 leads to simple
-      *   expressions, while higher values allow for more intricate, nested expressions.
+      *   The maximum depth for generating nested expressions within the `Let` construct.
+      * @return
+      *   A generator that produces `Let` expressions with randomly generated components.
+      */
+    protected def let(maxDepth: Int = 5): Gen[ast.Let] =
+      gen.const(
+        ast.Let(
+          Gen.alphaNumStr.sample.get,
+          expr(maxDepth - 1).sample.get,
+          expr(maxDepth - 1).sample.get
+        )
+      )
+
+    /** Generates a random instance of a unary function expression, either an increment, a decrement, or a let binding,
+      * within the `ast` package.
+      *
+      * This method extends the `Gen` object to create a generator for unary function expressions. It now includes
+      * instances of increment, decrement, and let binding operations encapsulated within the `Expr` class. The
+      * generated expressions are ideal for contexts like property-based testing, where a diverse range of expressions
+      * is beneficial for a comprehensive evaluation of expression handling logic.
+      *
+      * The complexity of the nested expressions within these unary functions is controlled by the `maxDepth` parameter.
+      * This parameter enables the creation of expressions with various levels of complexity, accommodating both
+      * straightforward and more intricate expression structures.
+      *
+      * @param maxDepth
+      *   The maximum depth of the expression tree, defaulting to 5. This parameter influences the complexity of the
+      *   nested expressions within the generated unary function expression. A `maxDepth` of 0 results in simple
+      *   expressions, while higher values allow for more complex, nested expressions.
       * @return
       *   A `Gen[ast.Expr]` that produces instances of unary function expressions in the `ast` package, specifically
-      *   either an increment or a decrement operation. The type of unary function and the complexity of its nested
+      *   increment, decrement, or let binding operations. The type of unary function and the complexity of its nested
       *   expression are determined based on the specified maximum depth.
       */
     protected def function(maxDepth: Int = 5): Gen[ast.Expr] =
-      gen.oneOf(increment(maxDepth), decrement(maxDepth))
+      gen.oneOf(increment(maxDepth), decrement(maxDepth), let(maxDepth))
 
     /** Generates an instance of the `Expr` class from the `ast` package, representing an expression.
       *

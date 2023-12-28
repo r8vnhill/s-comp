@@ -12,13 +12,13 @@ class DecrementTest extends AbstractScompTest {
       }
     }
 
-    "can be converted to Prefix notation" in {
+    "can be converted to a String" in {
       forAll(Gen.expr()) { expr =>
-        val prefix = Decrement(expr).toPrefix
-        prefix should have length(expr.toPrefix.length + 6) // 6 = "(dec )".length
-        prefix should startWith("(dec ")
-        prefix should endWith(")")
-        prefix should include(expr.toPrefix)
+        val str = Decrement(expr).toString
+        str should have length(expr.toString.length + 4) // 4 = 2 for the ++ and 2 for the ()
+        str should startWith("--(")
+        str should endWith(")")
+        str should include(expr.toString)
       }
     }
   }

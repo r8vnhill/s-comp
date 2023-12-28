@@ -25,7 +25,7 @@ class IfTest extends AbstractScompTest {
     }
   }
 
-  "Can be converted to a prefix string" in {
+  "Can be converted to a string" in {
     forAll(
       Gen
         .choose(0, 1)
@@ -33,11 +33,11 @@ class IfTest extends AbstractScompTest {
         .map(
           if _ then True else False
         ),
-      Gen.choose(-100, 100).map(Num.apply),
-      Gen.choose(-100, 100).map(Num.apply)
+      Gen.expr(),
+      Gen.expr()
     ) { (condition, thenBranch, elseBranch) =>
       val ifNode = If(condition, thenBranch, elseBranch)
-      ifNode.toPrefix should be(s"(if ${condition.toPrefix} then ${thenBranch.toPrefix} else ${elseBranch.toPrefix})")
+      ifNode.toString should be(s"if ($condition) { $thenBranch } else { $elseBranch }")
     }
   }
 }

@@ -24,5 +24,5 @@ case class Var(sym: String) extends Expr {
     * @return A `String` representing the variable in prefix notation. For example, if `sym` is "x", the `toPrefix`
     *         method will return "x".
     */
-  override def toPrefix: String = sym
+  override def toString: String = sym
 }
