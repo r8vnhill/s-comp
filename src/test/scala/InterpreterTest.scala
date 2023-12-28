@@ -1,9 +1,8 @@
 package cl.ravenhill.scomp
 
-import ast.{binary, terminal}
-
-import cl.ravenhill.scomp.ast.binary.{Plus, Times}
-import cl.ravenhill.scomp.ast.terminal.{False, Num, True, Var}
+import ast.*
+import ast.binary.{Plus, Times}
+import ast.terminal.{False, Num, True, Var}
 
 class InterpreterTest extends AbstractScompTest {
   "An interpreter" - {
@@ -55,14 +54,14 @@ class InterpreterTest extends AbstractScompTest {
     "an If expression" - {
       "should return the first expression when the condition is true" in {
         val environment = Environment(Map("x" -> 1, "y" -> 2))
-        interpret(environment, ast.If(terminal.True, Var("x"), terminal.Var("y"))) should matchPattern {
+        interpret(environment, ast.If(True, Var("x"), Var("y"))) should matchPattern {
           case util.Success(1) =>
         }
       }
 
       "should return the second expression when the condition is false" in {
         val environment = Environment(Map("x" -> 1, "y" -> 2))
-        interpret(environment, ast.If(terminal.False, terminal.Var("x"), terminal.Var("y"))) should matchPattern {
+        interpret(environment, ast.If(False, Var("x"), Var("y"))) should matchPattern {
           case util.Success(2) =>
         }
       }
@@ -72,40 +71,40 @@ class InterpreterTest extends AbstractScompTest {
   "A simplifier" - {
     "should simplify expressions with zero" - {
       "in addition on the left" in {
-        simplify(binary.Plus(terminal.Num(0), terminal.Var("x"))) should be(terminal.Var("x"))
+        simplify(binary.Plus(Num(0), Var("x"))) should be(Var("x"))
       }
 
       "in addition on the right" in {
-        simplify(binary.Plus(terminal.Var("x"), terminal.Num(0))) should be(terminal.Var("x"))
+        simplify(binary.Plus(Var("x"), Num(0))) should be(Var("x"))
       }
 
       "in multiplication on the left" in {
-        simplify(binary.Times(terminal.Num(0), terminal.Var("x"))) should be(terminal.Num(0))
+        simplify(binary.Times(Num(0), Var("x"))) should be(Num(0))
       }
 
       "in multiplication on the right" in {
-        simplify(binary.Times(terminal.Var("x"), terminal.Num(0))) should be(terminal.Num(0))
+        simplify(binary.Times(Var("x"), Num(0))) should be(Num(0))
       }
     }
 
     "should simplify expressions with one in multiplication" - {
       "on the left" in {
-        simplify(binary.Times(terminal.Num(1), terminal.Var("x"))) should be(terminal.Var("x"))
+        simplify(binary.Times(Num(1), Var("x"))) should be(Var("x"))
       }
 
       "on the right" in {
-        simplify(binary.Times(terminal.Var("x"), terminal.Num(1))) should be(terminal.Var("x"))
+        simplify(binary.Times(Var("x"), Num(1))) should be(Var("x"))
       }
     }
 
     "should not change already simplified expressions" in {
-      val expr = terminal.Var("x")
+      val expr = Var("x")
       simplify(expr) should be(expr)
     }
 
     "should simplify nested expressions" in {
-      val expr = binary.Plus(terminal.Num(0), binary.Plus(terminal.Var("x"), terminal.Num(0)))
-      simplify(expr) should be(terminal.Var("x"))
+      val expr = binary.Plus(Num(0), binary.Plus(Var("x"), Num(0)))
+      simplify(expr) should be(Var("x"))
     }
   }
 }

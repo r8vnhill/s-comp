@@ -84,13 +84,13 @@ class ParserTest extends AbstractScompTest {
   "When parsing nested expressions" - {
     val expressions = Table(
       ("expression", "parsed"),
-      ("+ * 0 0 2", binary.Plus(binary.Times(terminal.Num(0), terminal.Num(0)), terminal.Num(2))),
-      ("* + 1 2 3", binary.Times(binary.Plus(terminal.Num(1), terminal.Num(2)), terminal.Num(3))),
+      ("+ * 0 0 2", binary.Plus(binary.Times(Num(0), Num(0)), Num(2))),
+      ("* + 1 2 3", binary.Times(binary.Plus(Num(1), Num(2)), Num(3))),
       (
         "+ * 1 2 * 3 4",
-        binary.Plus(binary.Times(terminal.Num(1), terminal.Num(2)), binary.Times(terminal.Num(3), terminal.Num(4)))
+        binary.Plus(binary.Times(Num(1), Num(2)), binary.Times(Num(3), Num(4)))
       ),
-      ("* + x 1 2", binary.Times(binary.Plus(terminal.Var("x"), terminal.Num(1)), terminal.Num(2)))
+      ("* + x 1 2", binary.Times(binary.Plus(Var("x"), Num(1)), Num(2)))
     )
     "the left and right operands should be parsed correctly" in {
       forAll(expressions) { (expression: String, expected: ast.Expr) =>

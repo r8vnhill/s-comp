@@ -1,6 +1,5 @@
 package cl.ravenhill.scomp
 package ast
-
 import cl.ravenhill.scomp.ast.terminal.{False, Num, True}
 import org.scalacheck.Gen
 
@@ -35,7 +34,7 @@ class IfTest extends AbstractScompTest {
           if _ then True else False
         ),
       Gen.choose(-100, 100).map(Num.apply),
-      Gen.choose(-100, 100).map(terminal.Num.apply)
+      Gen.choose(-100, 100).map(Num.apply)
     ) { (condition, thenBranch, elseBranch) =>
       val ifNode = If(condition, thenBranch, elseBranch)
       ifNode.toPrefix should be(s"(if ${condition.toPrefix} then ${thenBranch.toPrefix} else ${elseBranch.toPrefix})")

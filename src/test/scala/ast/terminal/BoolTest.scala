@@ -1,5 +1,5 @@
 package cl.ravenhill.scomp
-package ast
+package ast.terminal
 
 import ast.terminal.{False, True}
 
