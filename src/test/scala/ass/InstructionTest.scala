@@ -18,4 +18,18 @@ class InstructionTest extends AbstractScompTest {
       }
     }
   }
+
+  "An Add instruction" - {
+    "should store the source passed to the constructor" in {
+      forAll(Gen.arg, Gen.arg) { (src: Arg, dst: Arg) =>
+        Add(dst, src).src should be (src)
+      }
+    }
+
+    "should store the destination passed to the constructor" in {
+      forAll(Gen.arg, Gen.arg) { (src: Arg, dst: Arg) =>
+        Add(dst, src).dest should be(dst)
+      }
+    }
+  }
 }
