@@ -23,6 +23,6 @@ sealed trait Instruction
   * @param src
   *   The source argument from where the data will be moved/copied. It is also an instance of `Arg`.
   */
-class Mov(dest: Arg, src: Arg) {
+case class Mov(dest: Arg, src: Arg) extends Instruction {
   override def toString: String = s"mov $dest, $src"
 }

@@ -40,7 +40,7 @@ case class Const(value: Int) extends Arg {
   * @param reg
   *   The `Registry` instance representing the specific register.
   */
-case class Reg(reg: Registry) extends Arg {
+case class Reg(reg: Register) extends Arg {
 
   /** Returns a string representation of this object.
     *

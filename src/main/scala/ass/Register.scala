@@ -8,7 +8,7 @@ package ass
   * ensures that all possible registers are exhaustively handled in pattern matching, enhancing type safety and reducing
   * the likelihood of runtime errors.
   */
-sealed trait Registry
+sealed trait Register
 
 /** Represents the RAX register in x86-64 assembly programming.
   *
@@ -16,6 +16,6 @@ sealed trait Registry
   * general-purpose register commonly used to store the return value of a function. As a case object, `Rax` provides a
   * convenient and type-safe way to refer to the RAX register in Scala representations of assembly language programs.
   */
-case object Rax extends Registry {
+case object Rax extends Register {
   override def toString: String = "RAX"
 }

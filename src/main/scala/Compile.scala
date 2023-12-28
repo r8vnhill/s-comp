@@ -1,17 +1,49 @@
 package cl.ravenhill.scomp
 
-def compile(program: Int): String =
-  s"""
-    |section .text
-    |global our_code_starts_here
-    |our_code_starts_here:
-    |  mov rax, $program
-    |  ret
-    |""".stripMargin
+import ass.*
 
-@main def main(args: String*): Unit =
+/** Compiles an integer expression into a sequence of assembly instructions.
+  *
+  * This function takes an integer expression and generates a corresponding sequence of assembly language instructions.
+  * Currently, it generates a single `Mov` instruction that moves the given integer expression into the `Rax` register.
+  *
+  * @param expr
+  *   The integer expression to be compiled.
+  * @return
+  *   A sequence of `Instruction` objects representing the compiled expression.
+  */
+def compileExpression(expr: Int): Seq[Instruction] = Seq(Mov(Reg(Rax), Const(expr)))
+
+/** Compiles an integer program into a string representation of its assembly instructions.
+  *
+  * This function compiles an integer program by first converting it into a sequence of assembly instructions using the
+  * `compileExpression` function. It then converts these instructions into a string format suitable for assembly
+  * language. The compiled instructions are wrapped in a standard assembly prelude and suffix. The prelude sets up the
+  * necessary assembly language scaffolding, and the suffix includes the `ret` instruction for returning from the
+  * function.
+  *
+  * @param program
+  *   The integer program to be compiled.
+  * @return
+  *   A string representing the assembly language code for the compiled program.
+  */
+def compileProgram(program: Int): String = {
+  val instructions = compileExpression(program)
+  val asmString    = instructions.mkString(s"${System.lineSeparator}  ")
+  val prelude =
+    """section .text
+      |global our_code_starts_here
+      |our_code_starts_here:""".stripMargin
+  val suffix = "ret"
+  s"""$prelude
+     |  $asmString
+     |  $suffix""".stripMargin
+}
+
+@main def main(args: String*): Unit = {
   val inputFile    = scala.io.Source.fromFile(args(0))
   val inputProgram = inputFile.mkString
   inputFile.close()
-  val program = compile(inputProgram.toInt)
+  val program = compileProgram(inputProgram.toInt)
   println(program)
+}
