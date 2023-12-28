@@ -2,7 +2,9 @@ package cl.ravenhill.scomp
 
 import ast.*
 import ast.binary.{Plus, Times}
-import ast.terminal.{False, Num, True, Var}
+import ast.terminal.{Num, Var}
+
+import cl.ravenhill.scomp.ast.unary.{Decrement, Increment}
 
 class InterpreterTest extends AbstractScompTest {
   "An interpreter" - {
@@ -25,44 +27,35 @@ class InterpreterTest extends AbstractScompTest {
   }
 
   "Interpreting" - {
-    "a Variable" - {
-      "should return the value of the variable it is defined" in {
-        val environment = Environment(Map("x" -> 1))
-        interpret(environment, Var("x")) should matchPattern { case util.Success(1) =>
-        }
-      }
-
-      "should fail if the variable is not defined" in {
-        val environment = Environment(Map("x" -> 1))
-        interpret(environment, Var("y")) should matchPattern { case util.Failure(_) =>
+    "a Number" - {
+      "should return the number" in {
+        forAll { (n: Int) =>
+          interpret(Environment.empty, Num(n)) should matchPattern { case util.Success(`n`) =>
+          }
         }
       }
     }
 
-    "a Boolean expression" - {
-      "should return 1 when true" in {
-        val environment = Environment(Map("x" -> 1, "y" -> 2))
-        interpret(environment, True) should matchPattern { case util.Success(1) => }
-      }
-
-      "should return 0 when false" in {
-        val environment = Environment(Map("x" -> 1, "y" -> 2))
-        interpret(environment, False) should matchPattern { case util.Success(0) => }
+    "an Increment" - {
+      "should return the number plus one" in {
+        forAll { (n: Int) =>
+          val interpreted = interpret(Environment.empty, Increment(Num(n)))
+          interpreted match {
+            case util.Success(result) => result should be(n + 1)
+            case _ => fail(s"Unexpected result: $interpreted")
+          }
+        }
       }
     }
 
-    "an If expression" - {
-      "should return the first expression when the condition is true" in {
-        val environment = Environment(Map("x" -> 1, "y" -> 2))
-        interpret(environment, ast.If(True, Var("x"), Var("y"))) should matchPattern {
-          case util.Success(1) =>
-        }
-      }
-
-      "should return the second expression when the condition is false" in {
-        val environment = Environment(Map("x" -> 1, "y" -> 2))
-        interpret(environment, ast.If(False, Var("x"), Var("y"))) should matchPattern {
-          case util.Success(2) =>
+    "a Decrement" - {
+      "should return the number minus one" in {
+        forAll { (n: Int) =>
+          val interpreted = interpret(Environment.empty, Decrement(Num(n)))
+          interpreted match {
+            case util.Success(result) => result should be(n - 1)
+            case _ => fail(s"Unexpected result: $interpreted")
+          }
         }
       }
     }

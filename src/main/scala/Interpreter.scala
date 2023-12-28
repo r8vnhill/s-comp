@@ -4,6 +4,7 @@ import ast.{binary, *}
 
 import cl.ravenhill.scomp.ast.binary.{Plus, Times}
 import cl.ravenhill.scomp.ast.terminal.{False, Num, True, Var}
+import cl.ravenhill.scomp.ast.unary.{Decrement, Increment}
 
 import scala.util.{Failure, Try}
 
@@ -34,24 +35,9 @@ import scala.util.{Failure, Try}
   */
 def interpret(env: Environment, expr: Expr): Try[Int] = {
   expr match {
-    case Var(x) => env(x) // Retrieves the value of the variable `x` from the environment.
     case Num(n) => Try(n) // Returns the integer value `n` for numerical constants.
-    case True   => Try(1) // Returns 1 for the `True` constant.
-    case False  => Try(0) // Returns 0 for the `False` constant.
-    case Plus(left, right) =>
-      interpret(env, left).flatMap(l =>
-        interpret(env, right).map(r => l + r)
-      ) // Recursively evaluates and adds the left and right operands.
-    case Times(left, right) =>
-      interpret(env, left).flatMap(l =>
-        interpret(env, right).map(r => l * r)
-      ) // Recursively evaluates and multiplies the left and right operands.
-    case If(
-          cond,
-          thenBranch,
-          elseBranch
-        ) => // Evaluates the condition and then either the then-branch or the else-branch.
-      interpret(env, cond).flatMap(c => if (c != 0) interpret(env, thenBranch) else interpret(env, elseBranch))
+    case Increment(expr) => interpret(env, expr).map(_ + 1) // Increments the evaluated value of the operand.
+    case Decrement(expr) => interpret(env, expr).map(_ - 1) // Decrements the evaluated value of the operand.
     case _ => Failure[Int](UnknownExpressionException(s"$expr"))
   }
 }
