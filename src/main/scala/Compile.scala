@@ -1,6 +1,8 @@
 package cl.ravenhill.scomp
 
 import ass.*
+import ast.terminal.Num
+import ast.unary.{Decrement, Increment}
 
 /** Compiles an integer expression into a sequence of assembly instructions.
   *
@@ -12,7 +14,11 @@ import ass.*
   * @return
   *   A sequence of `Instruction` objects representing the compiled expression.
   */
-def compileExpression(expr: Int): Seq[Instruction] = Seq(Mov(Reg(Rax), Const(expr)))
+def compileExpression(expr: ast.Expr): Seq[Instruction] = expr match {
+  case ast.terminal.Num(n) => Seq(Mov(Reg(Rax), Const(n)))
+  case ast.unary.Increment(e) => compileExpression(e) :+ Add(Reg(Rax), Const(1))
+  case ast.unary.Decrement(e) => compileExpression(e) :+ Add(Reg(Rax), Const(-1))
+}
 
 /** Compiles an integer program into a string representation of its assembly instructions.
   *
@@ -27,7 +33,7 @@ def compileExpression(expr: Int): Seq[Instruction] = Seq(Mov(Reg(Rax), Const(exp
   * @return
   *   A string representing the assembly language code for the compiled program.
   */
-def compileProgram(program: Int): String = {
+def compileProgram(program: ast.Expr): String = {
   val instructions = compileExpression(program)
   val asmString    = instructions.mkString(s"${System.lineSeparator}  ")
   val prelude =
@@ -42,8 +48,8 @@ def compileProgram(program: Int): String = {
 
 @main def main(args: String*): Unit = {
   val inputFile    = scala.io.Source.fromFile(args(0))
-  val inputProgram = inputFile.mkString
+  val input = inputFile.mkString
   inputFile.close()
-  val program = compileProgram(inputProgram.toInt)
+  val program = compileProgram(Decrement(Increment(Increment(Num(input.toInt)))))
   println(program)
 }
