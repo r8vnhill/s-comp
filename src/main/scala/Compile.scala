@@ -4,15 +4,6 @@ import ass.*
 import ast.terminal.Num
 import ast.unary.{Decrement, Doubled, Increment}
 
-import scala.util.Success
-
-private def doubled(expr: ast.Expr): Seq[Instruction] = {
-  val compiledExpr    = compileExpression(expr)
-  val interpretedExpr = interpret(Environment.empty, expr)
-  val increments = (1 to interpretedExpr.get).map(_ => Add(Reg(Rax), Const(1)))
-  compiledExpr :++ increments
-}
-
 /** Compiles an integer expression into a sequence of assembly instructions.
   *
   * This function takes an integer expression and generates a corresponding sequence of assembly language instructions.
@@ -25,9 +16,9 @@ private def doubled(expr: ast.Expr): Seq[Instruction] = {
   */
 def compileExpression(expr: ast.Expr): Seq[Instruction] = expr match {
   case ast.terminal.Num(n)    => Seq(Mov(Reg(Rax), Const(n)))
-  case ast.unary.Increment(e) => compileExpression(e) :+ Add(Reg(Rax), Const(1))
-  case ast.unary.Decrement(e) => compileExpression(e) :+ Add(Reg(Rax), Const(-1))
-  case ast.unary.Doubled(e) => doubled(e)
+  case ast.unary.Increment(e) => compileExpression(e) :+ Inc(Reg(Rax))
+  case ast.unary.Decrement(e) => compileExpression(e) :+ Dec(Reg(Rax))
+  case ast.unary.Doubled(e) => compileExpression(e) :+ Add(Reg(Rax), Reg(Rax))
 }
 
 /** Compiles an integer program into a string representation of its assembly instructions.
@@ -60,6 +51,6 @@ def compileProgram(program: ast.Expr): String = {
   val inputFile = scala.io.Source.fromFile(args(0))
   val input     = inputFile.mkString
   inputFile.close()
-  val program = compileProgram(Doubled(Num(input.toInt)))
+  val program = compileProgram(Decrement(Doubled(Increment(Num(input.toInt)))))
   println(program)
 }

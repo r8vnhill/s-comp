@@ -1,7 +1,7 @@
 package cl.ravenhill.scomp
 
 import ass.*
-import ast.unary.{Decrement, Increment}
+import ast.unary.{Decrement, Doubled, Increment}
 
 import org.scalacheck.Gen
 
@@ -32,6 +32,16 @@ class CompileTest extends AbstractScompTest {
         val result = compileExpression(Decrement(e))
         result should have size(compileExpression(e).size + 1)
         result.last should be(Add(Reg(Rax), Const(-1)))
+      }
+    }
+  }
+
+  "Compiling a doubled expression" - {
+    "should return a list containing the compiled subexpression followed by n additions" in {
+      forAll(Gen.expr()) { e =>
+        val result = compileExpression(Doubled(e))
+        result should have size (compileExpression(e).size + 1)
+        result.last should be(Add(Reg(Rax), Reg(Rax)))
       }
     }
   }

@@ -19,3 +19,20 @@ sealed trait Register
 case object Rax extends Register {
   override def toString: String = "RAX"
 }
+
+/** Represents the EAX register, commonly used in x86 assembly programming.
+  *
+  * This singleton object extends from the `Register` trait (or class) and is typically used to represent the EAX
+  * register in the generated assembly code or intermediate representation within the compiler.
+  *
+  * The `toString` method is overridden to provide a human-readable name for the register, which is "EAX" in this case.
+  */
+case object Eax extends Register {
+
+  /** Returns the string representation of the EAX register.
+    *
+    * @return
+    *   A string "EAX", representing the name of the register.
+    */
+  override def toString: String = "EAX"
+}
