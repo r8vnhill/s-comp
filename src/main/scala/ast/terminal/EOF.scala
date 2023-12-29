@@ -22,5 +22,5 @@ case object EOF extends Expr {
     * @return
     *   the prefix representation of this object.
     */
-  override def toPrefix: String = "EOF"
+  override def toString: String = ""
 }

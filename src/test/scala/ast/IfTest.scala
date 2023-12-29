@@ -2,6 +2,7 @@ package cl.ravenhill.scomp
 package ast
 import cl.ravenhill.scomp.ast.terminal.{False, Num, True}
 import org.scalacheck.Gen
+import generators.expr
 
 class IfTest extends AbstractScompTest {
   "The condition property should be set according to the constructor argument" in {

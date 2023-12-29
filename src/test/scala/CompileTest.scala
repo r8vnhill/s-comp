@@ -2,7 +2,7 @@ package cl.ravenhill.scomp
 
 import ass.*
 import ast.unary.{Decrement, Doubled, Increment}
-
+import generators.{expr, num}
 import org.scalacheck.Gen
 
 class CompileTest extends AbstractScompTest {

@@ -1,6 +1,8 @@
 package cl.ravenhill.scomp
 package ast
 
+import generators.expr
+
 import org.scalacheck.Gen
 
 class LetTest extends AbstractScompTest {

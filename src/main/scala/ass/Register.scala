@@ -36,3 +36,22 @@ case object Eax extends Register {
     */
   override def toString: String = "EAX"
 }
+
+/** Represents the RSP (Stack Pointer) register in assembly language.
+  *
+  * `Rsp` is a singleton object that extends from the [[Register]] trait. It models the RSP register, which is
+  * typically used in assembly language to point to the top of the stack. This object provides a consistent and
+  * type-safe way of referring to the RSP register within a Scala-based assembly language representation.
+  */
+case object Rsp extends Register {
+
+  /** Returns the string representation of the RSP register.
+    *
+    * This method overrides the `toString` method to return "RSP", representing the name of the stack pointer register
+    * in a human-readable form.
+    *
+    * @return
+    *   A string "RSP", representing the stack pointer register.
+    */
+  override def toString: String = "RSP"
+}

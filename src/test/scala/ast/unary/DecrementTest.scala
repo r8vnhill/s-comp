@@ -2,7 +2,7 @@ package cl.ravenhill.scomp
 package ast.unary
 
 import org.scalacheck.Gen
-
+import generators.expr
 class DecrementTest extends AbstractScompTest {
 
   "A Decrement expression" - {

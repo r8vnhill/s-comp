@@ -51,3 +51,29 @@ case class Reg(reg: Register) extends Arg {
     */
   override def toString: String = reg.toString
 }
+
+/** Represents an argument in assembly language that combines a register with an offset.
+  *
+  * `RegOffset` is a case class that extends the [[Arg]] trait, modeling an argument that consists of a register and an
+  * offset. This type of argument is commonly used in assembly language for memory addressing, where an offset is
+  * applied to a base address in a register.
+  *
+  * @param reg
+  *   The base register for the argument.
+  * @param offset
+  *   The offset to be applied to the base register. The actual offset used in the representation is calculated as 8 *
+  *   offset.
+  */
+case class RegOffset(reg: Register, offset: Int) extends Arg {
+
+  /** Returns a string representation of the register-offset combination.
+    *
+    * This method overrides the `toString` method to return a string that represents the argument in a format typical of
+    * assembly language memory addressing. The format is "[register + 8 * offset]", where 'register' is the base
+    * register and 'offset' is the scaled offset value.
+    *
+    * @return
+    *   A string representing the register-offset argument in assembly language syntax.
+    */
+  override def toString: String = s"[${reg.toString} + 8 * $offset]"
+}

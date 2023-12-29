@@ -27,5 +27,5 @@ case class Doubled(expr: Expr) extends Expr {
     *   A `String` representing the "doubled" expression in prefix notation. For example, if the enclosed expression is
     *   a numeric literal `3`, it would be represented as "(doubled 3)" in prefix notation.
     */
-  override def toPrefix: String = s"(doubled ${expr.toPrefix})"
+  override def toString: String = s"doubled($expr)"
 }

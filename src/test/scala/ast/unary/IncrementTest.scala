@@ -1,6 +1,8 @@
 package cl.ravenhill.scomp
 package ast.unary
 
+import generators.expr
+
 import org.scalacheck.Gen
 
 class IncrementTest extends AbstractScompTest {
