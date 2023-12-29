@@ -3,26 +3,30 @@ package ast.terminal
 
 import ast.Expr
 
-/** Represents a variable in an expression.
+/** Represents a variable in an expression with an additional annotation.
   *
-  * The `Var` case class is a concrete implementation of the `Expr` trait, specifically designed for representing
-  * variables in expressions. It encapsulates a `sym` which is a string symbol of the variable. As a case class,
-  * `Var` benefits from Scala's case class features, such as automatic creation of `apply` and `unapply` methods,
-  * and default implementations of `equals`, `hashCode`, and `toString`.
+  * The `Var` case class extends the `Expr[A]` trait, tailored to represent variables within expressions. It includes a
+  * type parameter `A` for annotations, which can be used to attach additional information such as type metadata,
+  * evaluation context, or any other relevant data. This class maintains the name of the variable (`sym`) and the
+  * associated annotation. Like other case classes in Scala, `Var` automatically provides implementations for methods
+  * like `apply`, `unapply`, `equals`, `hashCode`, and `toString`.
   *
-  * @param sym The string symbol representing the variable. This symbol is used to identify the variable within
-  *            an expression.
+  * @param sym
+  *   The name of the variable represented by this instance.
+  * @param annotation
+  *   The annotation associated with this variable, of type `A`.
+  * @tparam A
+  *   The type of annotation associated with this variable instance.
   */
-case class Var(sym: String) extends Expr {
+case class Var[A](sym: String, annotation: A) extends Expr[A] {
 
-  /** Converts the variable expression into its prefix notation.
+  /** Returns the string representation of the variable name.
     *
-    * In the case of `Var`, the prefix notation is simply the variable's symbol itself. As variables are basic
-    * elements in an expression and do not have operators associated with them, the `toPrefix` method returns the
-    * symbol representing the variable.
+    * This method overrides the `toString` method to return the name of the variable (`sym`), facilitating easy
+    * identification and readability of the variable in textual formats.
     *
-    * @return A `String` representing the variable in prefix notation. For example, if `sym` is "x", the `toPrefix`
-    *         method will return "x".
+    * @return
+    *   A string representing the name of the variable.
     */
   override def toString: String = sym
 }

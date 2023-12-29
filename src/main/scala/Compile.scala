@@ -1,10 +1,13 @@
 package cl.ravenhill.scomp
 
 import ass.*
-import ast.Let
+import ast.{Expr, Let}
 import ast.terminal.{Num, Var}
 import ast.unary.{Decrement, Doubled, Increment}
 
+import scala.util.{Failure, Success, Try}
+
+private 
 /** Compiles an AST expression into a sequence of assembly instructions.
   *
   * This function takes an expression from the abstract syntax tree (AST) and an environment mapping variable names to
@@ -20,19 +23,24 @@ import ast.unary.{Decrement, Doubled, Increment}
   * @return
   *   A sequence of instructions representing the compiled form of the expression.
   */
-def compileExpression(expr: ast.Expr, environment: Environment = Environment.empty): Seq[Instruction] = expr match {
-  case Let(sym, expr, body) =>
-    val extendedEnv     = environment + sym
-    val compiledBinding = compileExpression(expr, environment)
-    val moveToStack     = Seq(Mov(RegOffset(Rsp, -extendedEnv(sym).get), Reg(Rax)))
-    val compiledBody    = compileExpression(body, extendedEnv)
-    compiledBinding ++ moveToStack ++ compiledBody
-  case Var(sym)     => Seq(Mov(Reg(Rax), RegOffset(Rsp, -environment(sym).get)))
-  case Num(n)       => Seq(Mov(Reg(Rax), Const(n)))
-  case Increment(e) => compileExpression(e, environment) :+ Inc(Reg(Rax))
-  case Decrement(e) => compileExpression(e, environment) :+ Dec(Reg(Rax))
-  case Doubled(e)   => compileExpression(e, environment) :+ Add(Reg(Rax), Reg(Rax))
-}
+def compileExpression[A](expr: Expr[A], environment: Environment = Environment.empty): Try[Seq[Instruction]] =
+  expr match {
+    case Let(sym, expr, body, _) =>
+      val extendedEnv     = environment + sym
+      val compiledBinding = compileExpression(expr, environment)
+      val moveToStack     = Seq(Mov(RegOffset(Rsp, -extendedEnv(sym).get), Reg(Rax)))
+      val compiledBody    = compileExpression(body, extendedEnv)
+      for {
+        binding <- compiledBinding
+        body    <- compiledBody
+      } yield binding ++ moveToStack ++ body
+    case Var(sym, _) => Success(Seq(Mov(Reg(Rax), RegOffset(Rsp, -environment(sym).get))))
+    case Num(n, _) => Success(Seq(Mov(Reg(Rax), Const(n))))
+    case Increment(e, _) => compileExpression(e, environment).map(_ :+ Inc(Reg(Rax)))
+    case Decrement(e, _) => compileExpression(e, environment).map(_ :+ Dec(Reg(Rax)))
+    case Doubled(e, _) => compileExpression(e, environment).map(_ :+ Add(Reg(Rax), Reg(Rax)))
+    case _ => Failure[Seq[Instruction]](UnknownExpressionException(s"Unknown expression: $expr"))
+  }
 
 /** Compiles an integer program into a string representation of its assembly instructions.
   *
@@ -47,9 +55,9 @@ def compileExpression(expr: ast.Expr, environment: Environment = Environment.emp
   * @return
   *   A string representing the assembly language code for the compiled program.
   */
-def compileProgram(program: ast.Expr): String = {
+def compileProgram[A](program: ast.Expr[A]): String = {
   val instructions = compileExpression(program, Environment.empty)
-  val asmString    = instructions.mkString(s"${System.lineSeparator}  ")
+  val asmString    = instructions.map(_.mkString(s"${System.lineSeparator}  "))
   val prelude =
     """section .text
       |global our_code_starts_here
@@ -64,7 +72,7 @@ def compileProgram(program: ast.Expr): String = {
   val inputFile = scala.io.Source.fromFile(args(0))
   val input     = inputFile.mkString
   inputFile.close()
-  val ast     = Let("x", Num(input.toInt), Increment(Increment(Decrement(Doubled(Var("x"))))))
+  val ast     = Let("x", Num(input.toInt, 0), Increment(Increment(Decrement(Doubled(Var("x", 1), 2), 3), 4), 5), 6)
   val program = compileProgram(ast)
   println(s"; $ast")
   println(program)

@@ -3,29 +3,32 @@ package ast.unary
 
 import ast.Expr
 
-/** Represents a "doubled" expression in an expression language.
+/** Represents a doubling operation in an expression with an additional annotation.
   *
-  * `Doubled` is a case class that extends the `Expr` trait, representing an operation that doubles the value of an
-  * enclosed expression. This class encapsulates the concept of multiplying an expression's value by two, a common
-  * operation in various expression languages. The `Doubled` operation takes another expression as its operand,
-  * demonstrating the capability to nest expressions.
+  * The `Doubled` case class is part of the abstract syntax tree (AST) and extends the `Expr[A]` trait. It models the
+  * operation of doubling the value of an expression. This class is used to represent the unary operation of doubling in
+  * an AST, encapsulating the target expression to be doubled and an annotation of type `A`. The annotation can serve
+  * various purposes, such as carrying type metadata, evaluation context, or other relevant information. As a case
+  * class, `Doubled` benefits from Scala's standard features for case classes, including `apply`, `unapply`, `equals`,
+  * `hashCode`, and `toString`.
   *
   * @param expr
-  *   The expression whose value will be doubled. This is an instance of `Expr`, allowing for complex expression
-  *   structures through nested expressions.
+  *   The expression whose value is to be doubled.
+  * @param annotation
+  *   The annotation associated with this doubling operation, of type `A`.
+  * @tparam A
+  *   The type of annotation associated with this instance of the doubling operation.
   */
-case class Doubled(expr: Expr) extends Expr {
+case class Doubled[A](expr: Expr[A], annotation: A) extends Expr[A] {
 
-  /** Converts the "doubled" expression into its prefix notation.
+  /** Returns the string representation of the doubling operation.
     *
-    * This method overrides the `toPrefix` method from the `Expr` trait and provides a specific implementation for the
-    * "doubled" expression. In prefix notation, the "doubled" operator precedes its operand. The method converts the
-    * entire "doubled" expression into a string representation in prefix form, which is useful for parsing,
-    * interpretation, or displaying the expression in a human-readable format.
+    * This method overrides the `toString` method to provide a string format of the doubling operation applied to the
+    * expression. The format is "doubled(expression)", offering a straightforward and readable depiction of the
+    * operation.
     *
     * @return
-    *   A `String` representing the "doubled" expression in prefix notation. For example, if the enclosed expression is
-    *   a numeric literal `3`, it would be represented as "(doubled 3)" in prefix notation.
+    *   A string representing the doubling operation in a clear format.
     */
   override def toString: String = s"doubled($expr)"
 }
