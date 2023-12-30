@@ -4,8 +4,8 @@ ThisBuild / scalaVersion := "3.3.0"
 
 lazy val root = (project in file("."))
   .settings(
-    name := "s-comp",
-    idePackagePrefix := Some("cl.ravenhill.scomp")
+    name := "scum",
+    idePackagePrefix := Some("cl.ravenhill.scum")
   )
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.3.0"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.17"

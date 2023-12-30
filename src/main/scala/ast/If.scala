@@ -1,4 +1,4 @@
-package cl.ravenhill.scomp
+package cl.ravenhill.scum
 package ast
 
 /** Represents an 'if' conditional expression with an annotation in an abstract syntax tree (AST).

@@ -1,4 +1,4 @@
-package cl.ravenhill.scomp
+package cl.ravenhill.scum
 
 /** Exception class for handling unknown expression scenarios.
   *

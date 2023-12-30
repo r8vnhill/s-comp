@@ -1,4 +1,4 @@
-package cl.ravenhill.scomp
+package cl.ravenhill.scum
 
 import scala.annotation.targetName
 import scala.util.Try

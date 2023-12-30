@@ -1,4 +1,4 @@
-package cl.ravenhill.scomp
+package cl.ravenhill.scum
 package ast
 
 /** Represents the base trait for an expression in an abstract syntax tree (AST).

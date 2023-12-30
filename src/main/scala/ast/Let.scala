@@ -1,4 +1,4 @@
-package cl.ravenhill.scomp
+package cl.ravenhill.scum
 package ast
 
 /** Represents a 'let' expression with an annotation in a functional language construct.

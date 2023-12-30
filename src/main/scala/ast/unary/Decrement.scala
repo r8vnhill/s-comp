@@ -1,4 +1,4 @@
-package cl.ravenhill.scomp
+package cl.ravenhill.scum
 package ast.unary
 
 /** Represents a decrement operation in an expression with an additional annotation.

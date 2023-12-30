@@ -1,20 +1,20 @@
 
-package cl.ravenhill.scomp
+package cl.ravenhill.scum
 package ast.terminal
 
 import ast.terminal.Num
 
-class NumTest extends AbstractScompTest {
+class NumTest extends AbstractScumTest {
   "A number" - {
     "should have a value property that is set according to the constructor argument" in {
         forAll { (n: Int) =>
-          Num(n).n should be (n)
+          Num(n, 1).n should be (n)
         }
     }
     
     "can be converted to prefix notation" in {
       forAll { (n: Int) =>
-        Num(n).toString should be (n.toString)
+        Num(n, 1).toString should be (n.toString)
       }
     }
   }

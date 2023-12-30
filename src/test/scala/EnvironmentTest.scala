@@ -1,8 +1,8 @@
-package cl.ravenhill.scomp
+package cl.ravenhill.scum
 
 import scala.util.Success
 
-class EnvironmentTest extends AbstractScompTest {
+class EnvironmentTest extends AbstractScumTest {
   "An Environment instance" - {
     "when accessing a variable" - {
       "should return a success with the value" in {

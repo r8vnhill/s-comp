@@ -1,4 +1,4 @@
-package cl.ravenhill.scomp
+package cl.ravenhill.scum
 package ass
 
 /** Represents a CPU register in assembly language programming.

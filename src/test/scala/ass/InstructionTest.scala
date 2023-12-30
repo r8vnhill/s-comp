@@ -1,11 +1,11 @@
 
-package cl.ravenhill.scomp
+package cl.ravenhill.scum
 package ass
 
 import org.scalacheck.Gen
 import generators.arg
 import generators.mov
-class InstructionTest extends AbstractScompTest {
+class InstructionTest extends AbstractScumTest {
   "A Mov instruction" - {
     "should store the source passed to the constructor" in {
       forAll(Gen.arg, Gen.arg) { (src: Arg, dst: Arg) =>

@@ -1,9 +1,9 @@
-package cl.ravenhill.scomp
+package cl.ravenhill.scum
 package ass
 
 import org.scalacheck.Gen
 
-class ArgTest extends AbstractScompTest {
+class ArgTest extends AbstractScumTest {
 
   "A Constant" - {
     "should have a value property that is set accordingly to the constructor" in {

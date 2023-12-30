@@ -1,5 +1,5 @@
 
-package cl.ravenhill.scomp
+package cl.ravenhill.scum
 package generators
 
 import ass.{Arg, Const, Mov}
