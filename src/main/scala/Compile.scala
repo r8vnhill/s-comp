@@ -5,7 +5,6 @@ import ast.terminal.{Num, Var}
 import ast.unary.{Decrement, Doubled, Increment}
 import ast.{Expr, If, Let}
 
-import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
 /** Compiles an integer program into a string representation of its assembly instructions.
@@ -69,27 +68,8 @@ private[scum] def compileExpression[A](
     case Increment(e) => compileExpression(e, environment).map(_ :+ ass.Increment(Reg(Rax)))
     case Decrement(e) => compileExpression(e, environment).map(_ :+ ass.Decrement(Reg(Rax)))
     case Doubled(e)   => compileExpression(e, environment).map(_ :+ ass.Add(Reg(Rax), Reg(Rax)))
-    case ifExpr: If[A] =>
-      val If(condExpr, thenExpr, elseExpr) = ifExpr
-      val annotation                       = ifExpr.metadata
-      val elseLabel                        = s"else_$annotation"
-      val endLabel                         = s"endif_$annotation"
-      for {
-        cond       <- compileExpression(condExpr, environment)
-        thenBranch <- compileExpression(thenExpr, environment)
-        elseBranch <- compileExpression(elseExpr, environment)
-      } yield cond ++
-        Seq(
-          ass.Compare(Reg(Rax), Const(0)), // cmp rax, 0
-          ass.JumpIfEqual(elseLabel)       // jmp <else_label>
-        ) ++ thenBranch ++
-        Seq(
-          ass.Jump(endLabel),  // jmp <end_label>
-          ass.Label(elseLabel) // <else_label>:
-        ) ++
-        elseBranch ++
-        Seq(ass.Label(endLabel)) // <end_label>:
-    case _ => Failure[Seq[Instruction]](UnknownExpressionException(s"Unknown expression: $expr"))
+    case ifExpr: If[A] => compileIfExpression(ifExpr, environment)
+    case _             => Failure[Seq[Instruction]](UnknownExpressionException(s"Unknown expression: $expr"))
   }
 
 /** Compiles a 'Let' expression in an abstract syntax tree (AST) into assembly instructions.
@@ -131,6 +111,55 @@ private def compileLetExpression[A](
     binding <- compiledBinding
     body    <- compiledBody
   } yield binding ++ moveToStack ++ body
+}
+
+/** Compiles an 'If' expression in an abstract syntax tree (AST) into a sequence of assembly instructions.
+  *
+  * This method handles the compilation of 'If' expressions, which are conditional constructs commonly used in
+  * programming. The 'If' expression consists of a predicate expression and two branches: 'then' and 'else'. The method
+  * compiles the predicate and then uses jump instructions to execute either the 'then' branch or the 'else' branch
+  * based on the evaluation of the predicate.
+  *
+  * The compilation process involves generating labels for conditional jumps and sequencing the compiled instructions
+  * for each part of the 'If' expression. It first compiles the predicate expression, then conditionally jumps to the
+  * 'else' branch if the predicate evaluates to false (zero). Otherwise, it continues with the 'then' branch and jumps
+  * to the end label after executing it to avoid executing the 'else' branch.
+  *
+  * @param ifExpr
+  *   The 'If' expression to be compiled, consisting of a predicate, a 'then' expression, and an 'else' expression.
+  * @param environment
+  *   The current compilation environment mapping variable names to stack slots.
+  * @tparam A
+  *   The type of the annotation associated with the AST expressions.
+  * @return
+  *   A `Try[Seq[Instruction]]` representing the compiled form of the 'If' expression, which may fail if any part of the
+  *   expression compilation fails.
+  */
+def compileIfExpression[A](
+    ifExpr: If[A],
+    environment: Environment
+): Try[Seq[Instruction]] = {
+  val If(pred, thenExpr, elseExpr) = ifExpr
+  val annotation                   = ifExpr.metadata
+  val ifLabel                      = s"if_$annotation"
+  val elseLabel                    = s"else_$annotation"
+  val endLabel                     = s"endif_$annotation"
+  for {
+    predicate  <- compileExpression(pred, environment)
+    thenBranch <- compileExpression(thenExpr, environment)
+    elseBranch <- compileExpression(elseExpr, environment)
+  } yield predicate ++
+    Seq(
+      ass.Label(ifLabel),
+      ass.Compare(Reg(Rax), Const(0)), // cmp rax, 0
+      ass.JumpIfEqual(elseLabel)       // jmp <else_label>
+    ) ++ thenBranch ++
+    Seq(
+      ass.Jump(endLabel),  // jmp <end_label>
+      ass.Label(elseLabel) // <else_label>:
+    ) ++
+    elseBranch ++
+    Seq(ass.Label(endLabel)) // <end_label>:
 }
 
 /** Annotates an expression with additional metadata.
