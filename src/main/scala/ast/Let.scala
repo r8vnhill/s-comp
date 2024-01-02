@@ -14,12 +14,13 @@ package ast
   *   The expression whose result will be bound to the symbol.
   * @param body
   *   The expression where the symbol will be used.
-  * @param annotation
+  * @param metadata
   *   The annotation associated with this 'let' expression, of type `A`.
   * @tparam A
   *   The type of annotation associated with this instance of the 'let' expression.
   */
-case class Let[A](sym: String, expr: Expr[A], body: Expr[A], annotation: A) extends Expr[A] {
+case class Let[A](sym: String, expr: Expr[A], body: Expr[A])(using val metadata: Metadata[A])
+    extends Expr[A] {
 
   /** Returns a string representation of the 'let' expression in prefix notation.
     *

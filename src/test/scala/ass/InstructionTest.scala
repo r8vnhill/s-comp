@@ -69,13 +69,13 @@ class InstructionTest extends AbstractScumTest {
   "An Inc instruction" - {
     "should store the destination passed to the constructor" in {
       forAll(Gen.arg) { (dst: Arg) =>
-        Inc(dst).dest should be(dst)
+        Increment(dst).dest should be(dst)
       }
     }
 
     "can be converted to a String" in {
       forAll(Gen.arg) { (dest: Arg) =>
-        Inc(dest).toString should be(s"inc $dest")
+        Increment(dest).toString should be(s"inc $dest")
       }
     }
   }
@@ -83,13 +83,13 @@ class InstructionTest extends AbstractScumTest {
   "A Dec instruction" - {
     "should store the destination passed to the constructor" in {
       forAll(Gen.arg) { (dst: Arg) =>
-        Dec(dst).dest should be(dst)
+        Decrement(dst).dest should be(dst)
       }
     }
 
     "can be converted to a String" in {
       forAll(Gen.arg) { (dest: Arg) =>
-        Dec(dest).toString should be(s"dec $dest")
+        Decrement(dest).toString should be(s"dec $dest")
       }
     }
   }
@@ -97,19 +97,61 @@ class InstructionTest extends AbstractScumTest {
   "A Cmp instruction" - {
     "should store the source passed to the constructor" in {
       forAll(Gen.arg, Gen.arg) { (src: Arg, dst: Arg) =>
-        Cmp(dst, src).src should be (src)
+        Compare(dst, src).src should be (src)
       }
     }
 
     "should store the destination passed to the constructor" in {
       forAll(Gen.arg, Gen.arg) { (src: Arg, dst: Arg) =>
-        Cmp(dst, src).dest should be(dst)
+        Compare(dst, src).dest should be(dst)
       }
     }
 
     "can be converted to a String" in {
       forAll(Gen.arg, Gen.arg) { (dest: Arg, src: Arg) =>
-        Cmp(dest, src).toString should be(s"cmp $dest, $src")
+        Compare(dest, src).toString should be(s"cmp $dest, $src")
+      }
+    }
+  }
+  
+  "A Je instruction" - {
+    "should store the label passed to the constructor" in {
+      forAll(Gen.label) { (label: Label) =>
+        JumpIfEqual(label).label should be(label)
+      }
+    }
+
+    "can be converted to a String" in {
+      forAll(Gen.label) { (label: Label) =>
+        JumpIfEqual(label).toString should be(s"je $label")
+      }
+    }
+  }
+  
+  "A Jump instruction" - {
+    "should store the label passed to the constructor" in {
+      forAll(Gen.label) { (label: Label) =>
+        Jump(label).label should be(label)
+      }
+    }
+
+    "can be converted to a String" in {
+      forAll(Gen.label) { (label: Label) =>
+        Jump(label).toString should be(s"jmp $label")
+      }
+    }
+  }
+  
+  "A Label instruction" - {
+    "should store the label passed to the constructor" in {
+      forAll(Gen.label) { (label: Label) =>
+        Label(label).label should be(label)
+      }
+    }
+
+    "can be converted to a String" in {
+      forAll(Gen.label) { (label: Label) =>
+        Label(label).toString should be(s"$label:")
       }
     }
   }

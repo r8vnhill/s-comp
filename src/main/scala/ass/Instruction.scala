@@ -102,7 +102,7 @@ case class Sub(dest: Arg, src: Arg) extends Instruction {
   * @param dest
   *   The destination argument whose value will be incremented. It is an instance of `Arg`.
   */
-case class Inc(dest: Arg) extends Instruction {
+case class Increment(dest: Arg) extends Instruction {
 
   /** Provides a string representation of the 'inc' instruction in assembly language syntax.
     *
@@ -129,7 +129,7 @@ case class Inc(dest: Arg) extends Instruction {
   * @param dest
   *   The destination argument whose value will be decremented. It is an instance of `Arg`.
   */
-case class Dec(dest: Arg) extends Instruction {
+case class Decrement(dest: Arg) extends Instruction {
 
   /** Provides a string representation of the 'dec' instruction in assembly language syntax.
     *
@@ -159,7 +159,7 @@ case class Dec(dest: Arg) extends Instruction {
   * @param src
   *   The source argument to compare against the destination.
   */
-case class Cmp(dest: Arg, src: Arg) extends Instruction {
+case class Compare(dest: Arg, src: Arg) extends Instruction {
 
   /** Returns a string representation of the 'cmp' instruction.
     *
@@ -170,4 +170,81 @@ case class Cmp(dest: Arg, src: Arg) extends Instruction {
     *   A string depicting the 'cmp' instruction in assembly language syntax.
     */
   override def toString: String = s"cmp $dest, $src"
+}
+
+/** Represents the 'je' (jump if equal) instruction in assembly language.
+  *
+  * The `Je` case class extends the `Instruction` trait and models the jump instruction used in assembly language when a
+  * specific condition is met — specifically, it represents the 'jump if equal' condition. This instruction causes the
+  * program to jump to a different part of the code, identified by the provided label, if the zero flag (ZF) is set,
+  * which typically occurs when a comparison results in equality.
+  *
+  * The `toString` method override provides a string representation of the 'je' instruction, following the standard
+  * assembly language syntax. This enhances the readability of the generated code and is useful for debugging and code
+  * generation.
+  *
+  * @param label
+  *   The label to jump to if the zero flag is set.
+  */
+case class JumpIfEqual(label: String) extends Instruction {
+
+  /** Returns a string representation of the 'je' (jump if equal) instruction.
+    *
+    * This method overrides the `toString` method to produce a format typical for the 'je' instruction in assembly
+    * language. The format is "je label", where 'label' is the destination label for the jump.
+    *
+    * @return
+    *   A string representing the 'je' instruction, including the target label.
+    */
+  override def toString: String = s"je $label"
+}
+
+/** Represents the 'jmp' (jump) instruction in assembly language.
+  *
+  * The `Jump` case class extends the `Instruction` trait and models the jump instruction ('jmp') in assembly language.
+  * This instruction is used to unconditionally transfer the program control to a different part of the code, which is
+  * identified by the provided label. The jump instruction is a fundamental control flow operation in assembly
+  * programming and is essential for implementing loops, conditionals, and other control structures.
+  *
+  * @param label
+  *   The label to which control should jump.
+  */
+case class Jump(label: String) extends Instruction {
+
+  /** Returns a string representation of the 'jmp' (jump) instruction.
+    *
+    * This method overrides the `toString` method to return the 'jmp' instruction in a standard assembly language
+    * format. The format is "jmp label", where 'label' is the destination label for the jump.
+    *
+    * @return
+    *   A string representing the 'jmp' instruction, including the target label.
+    */
+  override def toString: String = s"jmp $label"
+}
+
+/** Represents a label in assembly language.
+  *
+  * The `Label` case class extends the `Instruction` trait and models a label in assembly language. Labels are used as
+  * markers or identifiers in the code, typically serving as targets for jump instructions like `jmp`, `je`, `jne`, etc.
+  * They are essential for controlling the flow of the program, allowing the code to jump to different sections based on
+  * certain conditions or during loops.
+  *
+  * The `toString` method override provides a string representation of the label, formatted in a standard way for
+  * assembly language. This representation includes the label name followed by a colon, which is the typical syntax for
+  * defining labels in assembly code.
+  *
+  * @param label
+  *   The name of the label.
+  */
+case class Label(label: String) extends Instruction {
+
+  /** Returns a string representation of the label.
+    *
+    * This method overrides the `toString` method to return the label in a format typical for labels in assembly
+    * language. The format is "label:", where 'label' is the name of the label.
+    *
+    * @return
+    *   A string representing the label in assembly language syntax.
+    */
+  override def toString: String = s"$label:"
 }

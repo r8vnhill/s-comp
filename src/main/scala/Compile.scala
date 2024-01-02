@@ -8,16 +8,6 @@ import ast.{Expr, If, Let}
 import java.util.UUID
 import scala.util.{Failure, Success, Try}
 
-@main def main(args: String*): Unit = {
-  val inputFile = scala.io.Source.fromFile(args(0))
-  val input     = inputFile.mkString
-  inputFile.close()
-  val ast     = Let("x", Num(input.toInt, 0), Increment(Increment(Decrement(Doubled(Var("x", 1), 2), 3), 4), 5), 6)
-  val program = compileProgram(ast)
-  println(s"; $ast")
-  println(program)
-}
-
 /** Compiles an integer program into a string representation of its assembly instructions.
   *
   * This function compiles an integer program by first converting it into a sequence of assembly instructions using the
@@ -33,15 +23,24 @@ import scala.util.{Failure, Success, Try}
   */
 def compileProgram[A](program: ast.Expr[A]): String = {
   val instructions = compileExpression(program, Environment.empty)
-  val asmString    = instructions.map(_.mkString(s"${System.lineSeparator}  "))
+  val asmString = instructions match {
+    case Success(instructions) =>
+      instructions
+        .map {
+          case Label(label) => s"$label:"
+          case instruction  => s"  $instruction"
+        }
+        .mkString("\n")
+    case Failure(exception) => throw exception
+  }
   val prelude =
     """section .text
       |global our_code_starts_here
       |our_code_starts_here:""".stripMargin
-  val suffix = Ret
+  val suffix = s"  $Ret"
   s"""$prelude
-     |  $asmString
-     |  $suffix""".stripMargin
+     |$asmString
+     |$suffix""".stripMargin
 }
 
 /** Compiles an AST expression into a sequence of assembly instructions.
@@ -64,68 +63,91 @@ private[scum] def compileExpression[A](
     environment: Environment = Environment.empty
 ): Try[Seq[Instruction]] =
   expr match {
-    case Let(sym, expr, body, _) =>
-      val extendedEnv     = environment + sym
-      val compiledBinding = compileExpression(expr, environment)
-      val moveToStack     = Seq(Mov(RegOffset(Rsp, -extendedEnv(sym).get), Reg(Rax)))
-      val compiledBody    = compileExpression(body, extendedEnv)
+    case Let(sym, expr, body) => compileLetExpression(sym, expr, body, environment)
+    case Var(sym)     => Success(Seq(Mov(Reg(Rax), RegOffset(Rsp, -environment(sym).get)))) // mov rax, [rsp - <offset>]
+    case Num(n)       => Success(Seq(Mov(Reg(Rax), Const(n))))                              // mov rax, <n>
+    case Increment(e) => compileExpression(e, environment).map(_ :+ ass.Increment(Reg(Rax)))
+    case Decrement(e) => compileExpression(e, environment).map(_ :+ ass.Decrement(Reg(Rax)))
+    case Doubled(e)   => compileExpression(e, environment).map(_ :+ ass.Add(Reg(Rax), Reg(Rax)))
+    case ifExpr: If[A] =>
+      val If(condExpr, thenExpr, elseExpr) = ifExpr
+      val annotation                       = ifExpr.metadata
+      val elseLabel                        = s"else_$annotation"
+      val endLabel                         = s"endif_$annotation"
       for {
-        binding <- compiledBinding
-        body    <- compiledBody
-      } yield binding ++ moveToStack ++ body
-    case Var(sym, _)     => Success(Seq(Mov(Reg(Rax), RegOffset(Rsp, -environment(sym).get))))
-    case Num(n, _)       => Success(Seq(Mov(Reg(Rax), Const(n))))
-    case Increment(e, _) => compileExpression(e, environment).map(_ :+ Inc(Reg(Rax)))
-    case Decrement(e, _) => compileExpression(e, environment).map(_ :+ Dec(Reg(Rax)))
-    case Doubled(e, _)   => compileExpression(e, environment).map(_ :+ Add(Reg(Rax), Reg(Rax)))
-    case If(cond, thenBranch, elseBranch, annotation) =>
-      val elseLabel = s"else_$annotation"
-      val endLabel  = s"endif_$annotation"
-      for {
-        cond       <- compileExpression(cond, environment)
-        thenBranch <- compileExpression(thenBranch, environment)
-        elseBranch <- compileExpression(elseBranch, environment)
+        cond       <- compileExpression(condExpr, environment)
+        thenBranch <- compileExpression(thenExpr, environment)
+        elseBranch <- compileExpression(elseExpr, environment)
       } yield cond ++
         Seq(
-          Cmp(Reg(Rax), Const(0)),
-          Je(elseLabel)
+          ass.Compare(Reg(Rax), Const(0)), // cmp rax, 0
+          ass.JumpIfEqual(elseLabel)       // jmp <else_label>
         ) ++ thenBranch ++
         Seq(
-          Jmp(endLabel),
-          Label(elseLabel)
+          ass.Jump(endLabel),  // jmp <end_label>
+          ass.Label(elseLabel) // <else_label>:
         ) ++
         elseBranch ++
-        Seq(Label(endLabel))
+        Seq(ass.Label(endLabel)) // <end_label>:
     case _ => Failure[Seq[Instruction]](UnknownExpressionException(s"Unknown expression: $expr"))
   }
 
-/** Annotates an expression tree with unique identifiers.
+/** Compiles a 'Let' expression in an abstract syntax tree (AST) into assembly instructions.
   *
-  * This function traverses an expression tree and annotates each node with a unique identifier, generated using UUIDs.
-  * The annotation process is recursive, ensuring that each node in the tree, regardless of its depth or complexity,
-  * receives a unique identifier. This can be particularly useful for tasks such as debugging, visualizing the structure
-  * of the expression tree, or performing transformations where unique identification of nodes is required.
+  * This method handles the compilation of 'Let' expressions, which are used to bind a value to a symbol (variable) and
+  * then use this symbol within the body of another expression. The method extends the environment with the new symbol,
+  * compiles the binding expression, moves the result to the stack, and then compiles the body expression with the
+  * updated environment.
+  *
+  * The result of the binding expression is first stored in the RAX register and then moved to the appropriate stack
+  * slot corresponding to the symbol. This is followed by the compilation of the body expression, which can now use the
+  * value bound to the symbol.
+  *
+  * @param sym
+  *   The symbol (variable name) to which the binding expression's result will be bound.
+  * @param bindingExpr
+  *   The expression whose result will be bound to the symbol.
+  * @param bodyExpr
+  *   The body expression where the symbol will be used.
+  * @param environment
+  *   The current compilation environment mapping variable names to stack slots.
+  * @tparam A
+  *   The type of the annotation associated with the AST expressions.
+  * @return
+  *   A `Try[Seq[Instruction]]` representing the compiled form of the 'Let' expression, which may fail if any part of
+  *   the expression compilation fails.
+  */
+private def compileLetExpression[A](
+    sym: String,
+    bindingExpr: Expr[A],
+    bodyExpr: Expr[A],
+    environment: Environment
+): Try[Seq[Instruction]] = {
+  val extendedEnv     = environment + sym                                         // Ensure sym exists in extendedEnv
+  val compiledBinding = compileExpression(bindingExpr, environment)
+  val moveToStack     = Seq(Mov(RegOffset(Rsp, -extendedEnv(sym).get), Reg(Rax))) // mov [rsp - <offset>], rax
+  val compiledBody    = compileExpression(bodyExpr, extendedEnv)
+  for {
+    binding <- compiledBinding
+    body    <- compiledBody
+  } yield binding ++ moveToStack ++ body
+}
+
+/** Annotates an expression with additional metadata.
   *
   * @param expression
-  *   The expression tree to be annotated.
-  * @tparam A
-  *   The type of the original annotations in the expression tree (if any).
+  *   The expression to be annotated.
   * @return
-  *   An `Expr[String]` where each node in the original tree is annotated with a unique identifier.
-  * @throws UnknownExpressionException
-  *   If an unknown expression type is encountered.
+  *   The annotated expression.
   */
-def annotate[A](expression: Expr[A]): Expr[String] = {
-  def annotateRecursively(e: Expr[A], cur: Int): Expr[String] =
-    e match {
-      case Let(sym, expr, body, _) =>
-        Let(sym, annotateRecursively(expr, cur), annotateRecursively(body, cur + 1), UUID.randomUUID().toString)
-      case Var(sym, _)     => Var(sym, UUID.randomUUID().toString)
-      case Num(n, _)       => Num(n, UUID.randomUUID().toString)
-      case Increment(e, _) => Increment(annotateRecursively(e, cur), UUID.randomUUID().toString)
-      case Decrement(e, _) => Decrement(annotateRecursively(e, cur), UUID.randomUUID().toString)
-      case Doubled(e, _)   => Doubled(annotateRecursively(e, cur), UUID.randomUUID().toString)
-      case _               => throw UnknownExpressionException(s"Unknown expression: $e")
-    }
-  annotateRecursively(expression, 0)
+private def annotate(expression: Expr[String]): Expr[String] = {
+  expression match {
+    case Let(sym, expr, body) => Let(sym, annotate(expr), annotate(body))
+    case Var(sym)             => Var(sym)
+    case Num(n)               => Num(n)
+    case Increment(e)         => Increment(annotate(e))
+    case Decrement(e)         => Decrement(annotate(e))
+    case Doubled(e)           => Doubled(annotate(e))
+    case _                    => throw UnknownExpressionException(s"Unknown expression: $expression")
+  }
 }

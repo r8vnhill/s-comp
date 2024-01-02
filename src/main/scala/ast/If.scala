@@ -19,12 +19,13 @@ package ast
   *   The expression to execute if `cond` evaluates to non-zero.
   * @param elseBranch
   *   The expression to execute if `cond` evaluates to zero.
-  * @param annotation
+  * @param metadata
   *   The annotation associated with this 'if-else' expression, of type `A`.
   * @tparam A
   *   The type of annotation associated with this instance of the 'if-else' expression.
   */
-case class If[A](cond: Expr[A], thenBranch: Expr[A], elseBranch: Expr[A], annotation: A) extends Expr[A] {
+case class If[A](cond: Expr[A], thenBranch: Expr[A], elseBranch: Expr[A])(using override val metadata: Metadata[A])
+    extends Expr[A] {
 
   /** Returns a string representation of the 'if-else' construct.
     *

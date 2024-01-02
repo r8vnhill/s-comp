@@ -13,12 +13,12 @@ import ast.Expr
   *
   * @param sym
   *   The name of the variable represented by this instance.
-  * @param annotation
+  * @param metadata
   *   The annotation associated with this variable, of type `A`.
   * @tparam A
   *   The type of annotation associated with this variable instance.
   */
-case class Var[A](sym: String, annotation: A) extends Expr[A] {
+case class Var[A](sym: String)(using override val metadata: Metadata[A]) extends Expr[A] {
 
   /** Returns the string representation of the variable name.
     *

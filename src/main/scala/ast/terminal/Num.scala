@@ -12,10 +12,10 @@ import ast.Expr
  * `hashCode`, and `toString`.
  *
  * @param n The integer value this `Num` instance represents.
- * @param annotation The annotation associated with this numerical constant, of type `A`.
+ * @param metadata The annotation associated with this numerical constant, of type `A`.
  * @tparam A The type of annotation associated with this `Num` instance.
  */
-case class Num[A](n: Int, annotation: A) extends Expr[A] {
+case class Num[A](n: Int)(using override val metadata: Metadata[A]) extends Expr[A] {
   
   /** Returns the string representation of the numerical constant.
    *

@@ -14,12 +14,12 @@ import ast.Expr
   *
   * @param expr
   *   The expression that is subject to the increment operation.
-  * @param annotation
+  * @param metadata
   *   The annotation associated with this increment operation, of type `A`.
   * @tparam A
   *   The type of annotation associated with this instance of the increment operation.
   */
-case class Increment[A](expr: Expr[A], annotation: A) extends Expr[A] {
+case class Increment[A](expr: Expr[A])(using override val metadata: Metadata[A]) extends Expr[A] {
 
   /** Returns the string representation of the increment operation.
     *

@@ -1,7 +1,7 @@
 package cl.ravenhill.scum
 package generators
 
-import ass.{Arg, Cmp, Const, Mov}
+import ass.{Arg, Compare, Const, Mov}
 
 import org.scalacheck.Gen
 
@@ -53,7 +53,7 @@ extension (gen: Gen.type) {
     * @return
     *   A `Gen[Mov]` that produces instances of `Cmp` instructions with randomly generated arguments.
     */
-  def cmp(dst: Gen[Arg] = gen.arg, src: Gen[Arg] = gen.arg): Gen[Mov] = gen.const(Cmp(dst.sample.get, src.sample.get))
+  def cmp(dst: Gen[Arg] = gen.arg, src: Gen[Arg] = gen.arg): Gen[Mov] = gen.const(Compare(dst.sample.get, src.sample.get))
 
   /** Generates a registry argument for assembly language.
     *

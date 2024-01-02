@@ -14,12 +14,12 @@ import ast.Expr
   *
   * @param expr
   *   The expression whose value is to be doubled.
-  * @param annotation
+  * @param metadata
   *   The annotation associated with this doubling operation, of type `A`.
   * @tparam A
   *   The type of annotation associated with this instance of the doubling operation.
   */
-case class Doubled[A](expr: Expr[A], annotation: A) extends Expr[A] {
+case class Doubled[A](expr: Expr[A])(using override val metadata: Metadata[A]) extends Expr[A] {
 
   /** Returns the string representation of the doubling operation.
     *
