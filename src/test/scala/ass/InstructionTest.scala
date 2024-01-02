@@ -93,4 +93,24 @@ class InstructionTest extends AbstractScumTest {
       }
     }
   }
+  
+  "A Cmp instruction" - {
+    "should store the source passed to the constructor" in {
+      forAll(Gen.arg, Gen.arg) { (src: Arg, dst: Arg) =>
+        Cmp(dst, src).src should be (src)
+      }
+    }
+
+    "should store the destination passed to the constructor" in {
+      forAll(Gen.arg, Gen.arg) { (src: Arg, dst: Arg) =>
+        Cmp(dst, src).dest should be(dst)
+      }
+    }
+
+    "can be converted to a String" in {
+      forAll(Gen.arg, Gen.arg) { (dest: Arg, src: Arg) =>
+        Cmp(dest, src).toString should be(s"cmp $dest, $src")
+      }
+    }
+  }
 }

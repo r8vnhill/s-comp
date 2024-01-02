@@ -88,7 +88,7 @@ private[scum] def compileExpression[A](
       } yield cond ++
         Seq(
           Cmp(Reg(Rax), Const(0)),
-          Jne(elseLabel)
+          Je(elseLabel)
         ) ++ thenBranch ++
         Seq(
           Jmp(endLabel),
