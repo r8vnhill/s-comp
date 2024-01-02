@@ -3,25 +3,25 @@ package cl.ravenhill.scum
 package ass
 
 import org.scalacheck.Gen
-import generators.arg
-import generators.mov
+import generators.*
+
 class InstructionTest extends AbstractScumTest {
   "A Mov instruction" - {
     "should store the source passed to the constructor" in {
       forAll(Gen.arg, Gen.arg) { (src: Arg, dst: Arg) =>
-        Mov(dst, src).src should be(src)
+        Move(dst, src).src should be(src)
       }
     }
 
     "should store the destination passed to the constructor" in {
       forAll(Gen.arg, Gen.arg) { (src: Arg, dst: Arg) =>
-        Mov(dst, src).dest should be(dst)
+        Move(dst, src).dest should be(dst)
       }
     }
 
     "can be converted to a String" in {
       forAll(Gen.arg, Gen.arg) { (dest: Arg, src: Arg) =>
-        Mov(dest, src).toString should be(s"mov $dest, $src")
+        Move(dest, src).toString should be(s"mov $dest, $src")
       }
     }
   }
@@ -116,13 +116,13 @@ class InstructionTest extends AbstractScumTest {
   
   "A Je instruction" - {
     "should store the label passed to the constructor" in {
-      forAll(Gen.label) { (label: Label) =>
+      forAll(Gen.stringLabel) { label =>
         JumpIfEqual(label).label should be(label)
       }
     }
 
     "can be converted to a String" in {
-      forAll(Gen.label) { (label: Label) =>
+      forAll(Gen.stringLabel) { label =>
         JumpIfEqual(label).toString should be(s"je $label")
       }
     }
@@ -130,13 +130,13 @@ class InstructionTest extends AbstractScumTest {
   
   "A Jump instruction" - {
     "should store the label passed to the constructor" in {
-      forAll(Gen.label) { (label: Label) =>
+      forAll(Gen.stringLabel) { label =>
         Jump(label).label should be(label)
       }
     }
 
     "can be converted to a String" in {
-      forAll(Gen.label) { (label: Label) =>
+      forAll(Gen.stringLabel) { label =>
         Jump(label).toString should be(s"jmp $label")
       }
     }
@@ -144,13 +144,13 @@ class InstructionTest extends AbstractScumTest {
   
   "A Label instruction" - {
     "should store the label passed to the constructor" in {
-      forAll(Gen.label) { (label: Label) =>
+      forAll(Gen.stringLabel) { label =>
         Label(label).label should be(label)
       }
     }
 
     "can be converted to a String" in {
-      forAll(Gen.label) { (label: Label) =>
+      forAll(Gen.stringLabel) { label =>
         Label(label).toString should be(s"$label:")
       }
     }

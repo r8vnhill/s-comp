@@ -63,8 +63,8 @@ private[scum] def compileExpression[A](
 ): Try[Seq[Instruction]] =
   expr match {
     case Let(sym, expr, body) => compileLetExpression(sym, expr, body, environment)
-    case Var(sym)     => Success(Seq(Mov(Reg(Rax), RegOffset(Rsp, -environment(sym).get)))) // mov rax, [rsp - <offset>]
-    case Num(n)       => Success(Seq(Mov(Reg(Rax), Const(n))))                              // mov rax, <n>
+    case Var(sym)     => Success(Seq(Move(Reg(Rax), RegOffset(Rsp, -environment(sym).get)))) // mov rax, [rsp - <offset>]
+    case Num(n)       => Success(Seq(Move(Reg(Rax), Const(n))))                              // mov rax, <n>
     case Increment(e) => compileExpression(e, environment).map(_ :+ ass.Increment(Reg(Rax)))
     case Decrement(e) => compileExpression(e, environment).map(_ :+ ass.Decrement(Reg(Rax)))
     case Doubled(e)   => compileExpression(e, environment).map(_ :+ ass.Add(Reg(Rax), Reg(Rax)))
@@ -105,7 +105,7 @@ private def compileLetExpression[A](
 ): Try[Seq[Instruction]] = {
   val extendedEnv     = environment + sym                                         // Ensure sym exists in extendedEnv
   val compiledBinding = compileExpression(bindingExpr, environment)
-  val moveToStack     = Seq(Mov(RegOffset(Rsp, -extendedEnv(sym).get), Reg(Rax))) // mov [rsp - <offset>], rax
+  val moveToStack     = Seq(Move(RegOffset(Rsp, -extendedEnv(sym).get), Reg(Rax))) // mov [rsp - <offset>], rax
   val compiledBody    = compileExpression(bodyExpr, extendedEnv)
   for {
     binding <- compiledBinding
