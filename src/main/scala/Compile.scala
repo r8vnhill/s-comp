@@ -1,13 +1,12 @@
 package cl.ravenhill.scum
 
 import ass.*
-import ast.{Expr, Let}
 import ast.terminal.{Num, Var}
 import ast.unary.{Decrement, Doubled, Increment}
+import ast.{Expr, Let}
 
 import scala.util.{Failure, Success, Try}
 
-private 
 /** Compiles an AST expression into a sequence of assembly instructions.
   *
   * This function takes an expression from the abstract syntax tree (AST) and an environment mapping variable names to
@@ -23,7 +22,10 @@ private
   * @return
   *   A sequence of instructions representing the compiled form of the expression.
   */
-def compileExpression[A](expr: Expr[A], environment: Environment = Environment.empty): Try[Seq[Instruction]] =
+private[scum] def compileExpression[A](
+    expr: Expr[A],
+    environment: Environment = Environment.empty
+): Try[Seq[Instruction]] =
   expr match {
     case Let(sym, expr, body, _) =>
       val extendedEnv     = environment + sym
@@ -34,12 +36,12 @@ def compileExpression[A](expr: Expr[A], environment: Environment = Environment.e
         binding <- compiledBinding
         body    <- compiledBody
       } yield binding ++ moveToStack ++ body
-    case Var(sym, _) => Success(Seq(Mov(Reg(Rax), RegOffset(Rsp, -environment(sym).get))))
-    case Num(n, _) => Success(Seq(Mov(Reg(Rax), Const(n))))
+    case Var(sym, _)     => Success(Seq(Mov(Reg(Rax), RegOffset(Rsp, -environment(sym).get))))
+    case Num(n, _)       => Success(Seq(Mov(Reg(Rax), Const(n))))
     case Increment(e, _) => compileExpression(e, environment).map(_ :+ Inc(Reg(Rax)))
     case Decrement(e, _) => compileExpression(e, environment).map(_ :+ Dec(Reg(Rax)))
-    case Doubled(e, _) => compileExpression(e, environment).map(_ :+ Add(Reg(Rax), Reg(Rax)))
-    case _ => Failure[Seq[Instruction]](UnknownExpressionException(s"Unknown expression: $expr"))
+    case Doubled(e, _)   => compileExpression(e, environment).map(_ :+ Add(Reg(Rax), Reg(Rax)))
+    case _               => Failure[Seq[Instruction]](UnknownExpressionException(s"Unknown expression: $expr"))
   }
 
 /** Compiles an integer program into a string representation of its assembly instructions.
@@ -62,7 +64,7 @@ def compileProgram[A](program: ast.Expr[A]): String = {
     """section .text
       |global our_code_starts_here
       |our_code_starts_here:""".stripMargin
-  val suffix = "ret"
+  val suffix = Ret
   s"""$prelude
      |  $asmString
      |  $suffix""".stripMargin

@@ -10,6 +10,28 @@ package ass
   */
 sealed trait Instruction
 
+/** Represents the 'ret' (return) instruction in assembly language.
+ *
+ * `Ret` is a case object that extends the `Instruction` sealed trait, specifically representing the return
+ * instruction in an assembly language. The 'ret' instruction is typically used to return from a subroutine or function.
+ * Being a case object, `Ret` benefits from Scala's features for case classes and objects, such as a default 
+ * implementation of methods like `toString`. This object is part of the comprehensive set of instruction types 
+ * defined for assembly language representation.
+ *
+ * The `toString` method override provides a string representation of the 'ret' instruction, facilitating its use
+ * in assembly code generation and debugging processes.
+ */
+case object Ret extends Instruction {
+  /** Returns a string representation of the 'ret' instruction.
+   *
+   * This method overrides the `toString` method to return "ret", which is the standard representation of the return
+   * instruction in assembly language.
+   *
+   * @return A string "ret", representing the return instruction.
+   */
+  override def toString: String = "ret"
+}
+
 /** Represents the 'mov' instruction in assembly language.
   *
   * The `Mov` class models the 'mov' instruction, which is used to move or copy data from the source (`src`) to the
