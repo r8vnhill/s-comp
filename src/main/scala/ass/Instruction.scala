@@ -11,24 +11,26 @@ package ass
 sealed trait Instruction
 
 /** Represents the 'ret' (return) instruction in assembly language.
- *
- * `Ret` is a case object that extends the `Instruction` sealed trait, specifically representing the return
- * instruction in an assembly language. The 'ret' instruction is typically used to return from a subroutine or function.
- * Being a case object, `Ret` benefits from Scala's features for case classes and objects, such as a default 
- * implementation of methods like `toString`. This object is part of the comprehensive set of instruction types 
- * defined for assembly language representation.
- *
- * The `toString` method override provides a string representation of the 'ret' instruction, facilitating its use
- * in assembly code generation and debugging processes.
- */
+  *
+  * `Ret` is a case object that extends the `Instruction` sealed trait, specifically representing the return instruction
+  * in an assembly language. The 'ret' instruction is typically used to return from a subroutine or function. Being a
+  * case object, `Ret` benefits from Scala's features for case classes and objects, such as a default implementation of
+  * methods like `toString`. This object is part of the comprehensive set of instruction types defined for assembly
+  * language representation.
+  *
+  * The `toString` method override provides a string representation of the 'ret' instruction, facilitating its use in
+  * assembly code generation and debugging processes.
+  */
 case object Ret extends Instruction {
+
   /** Returns a string representation of the 'ret' instruction.
-   *
-   * This method overrides the `toString` method to return "ret", which is the standard representation of the return
-   * instruction in assembly language.
-   *
-   * @return A string "ret", representing the return instruction.
-   */
+    *
+    * This method overrides the `toString` method to return "ret", which is the standard representation of the return
+    * instruction in assembly language.
+    *
+    * @return
+    *   A string "ret", representing the return instruction.
+    */
   override def toString: String = "ret"
 }
 
@@ -139,4 +141,33 @@ case class Dec(dest: Arg) extends Instruction {
     *   A string representing the 'dec' instruction, formatted in assembly language syntax.
     */
   override def toString: String = s"dec $dest"
+}
+
+/** Represents a 'cmp' (compare) instruction in assembly language.
+  *
+  * The `Cmp` case class extends the `Instruction` trait and models the comparison operation in assembly language. This
+  * operation compares two arguments and sets the flags in the status register based on the result. It is a fundamental
+  * instruction for conditional execution in assembly programming. The class encapsulates both the destination and
+  * source arguments for the comparison.
+  *
+  * The `toString` method override provides a string representation of the 'cmp' instruction, formatted in a way typical
+  * of assembly language instructions, which enhances readability and is useful for assembly code generation and
+  * debugging.
+  *
+  * @param dest
+  *   The destination argument for the comparison.
+  * @param src
+  *   The source argument to compare against the destination.
+  */
+case class Cmp(dest: Arg, src: Arg) extends Instruction {
+
+  /** Returns a string representation of the 'cmp' instruction.
+    *
+    * This method overrides the `toString` method to return a string format of the 'cmp' instruction, displaying the
+    * destination and source arguments. The format is "cmp destination, source".
+    *
+    * @return
+    *   A string depicting the 'cmp' instruction in assembly language syntax.
+    */
+  override def toString: String = s"cmp $dest, $src"
 }

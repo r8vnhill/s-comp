@@ -4,8 +4,7 @@
 
 Scum is a minimalistic compiler designed to demonstrate the fundamentals of compiler construction. It is implemented
 in Scala, leveraging its functional programming capabilities and strong static type system. This project aims to
-provide an educational tool for understanding how compilers work, from parsing source code to executing basic 
-operations.
+provide an educational tool for understanding how compilers work.
 
 ## Features
 
