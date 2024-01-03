@@ -1,7 +1,6 @@
 package cl.ravenhill.scum
 package generators
 
-import ass.registry.{Rax, Register}
 import ass.{Arg, Compare, Constant, Move}
 
 import org.scalacheck.Gen
@@ -81,19 +80,7 @@ extension (gen: Gen.type) {
     * @return
     *   A `Gen[Register]` that produces one of the predefined `Register` instances (`Rax`, `Eax`, `Rsp`).
     */
-  def register: Gen[Register] = gen.oneOf(ass.registry.Rax, ass.registry.Eax, ass.registry.Rsp)
-
-  /** Generates a registry argument for assembly language.
-    *
-    * This method extends the `Gen` object to create a generator for `Reg` objects, specifically for generating register
-    * arguments in assembly language. Currently, it is limited to generating the `Rax` register.
-    *
-    * @return
-    *   A `Gen[Reg]` that produces `Reg` instances, currently limited to `Rax`.
-    */
-  def registerBox: Gen[ass.RegisterBox] = for {
-    register <- gen.register
-  } yield ass.RegisterBox(register)
+  def register: Gen[ass.Register] = gen.oneOf(ass.Rax(), ass.Eax(), ass.Rsp())
 
   /** Generates a general assembly language argument.
     *
@@ -103,7 +90,7 @@ extension (gen: Gen.type) {
     * @return
     *   A `Gen[Arg]` that produces either `Const` or `Reg` instances, depending on the random choice.
     */
-  def arg: Gen[ass.Arg] = gen.oneOf(gen.constant(), gen.registerBox)
+  def arg: Gen[ass.Arg] = gen.oneOf(gen.constant(), gen.register)
 
   /** Generates a random assembly language instruction.
     *

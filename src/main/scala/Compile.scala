@@ -5,7 +5,7 @@ import ast.terminal.{Num, Var}
 import ast.unary.{Decrement, Doubled, Increment}
 import ast.{Expr, If, Let}
 
-import cl.ravenhill.scum.ass.registry.{Rax, Rsp}
+import cl.ravenhill.scum.ass.registry.-
 
 import scala.util.{Failure, Success, Try}
 
@@ -65,13 +65,13 @@ private[scum] def compileExpression[A](
 ): Try[Seq[Instruction]] =
   expr match {
     case Let(sym, expr, body) => compileLetExpression(sym, expr, body, environment)
-    case Var(sym)     => Success(Seq(Move(RegisterBox(Rax), RegisterOffset(Rsp, -environment(sym).get)))) // mov rax, [rsp - <offset>]
-    case Num(n)       => Success(Seq(Move(RegisterBox(Rax), Constant(n))))                              // mov rax, <n>
-    case Increment(e) => compileExpression(e, environment).map(_ :+ ass.Increment(RegisterBox(Rax)))
-    case Decrement(e) => compileExpression(e, environment).map(_ :+ ass.Decrement(RegisterBox(Rax)))
-    case Doubled(e)   => compileExpression(e, environment).map(_ :+ ass.Add(RegisterBox(Rax), RegisterBox(Rax)))
-    case ifExpr: If[A] => compileIfExpression(ifExpr, environment)
-    case _             => Failure[Seq[Instruction]](UnknownExpressionException(s"Unknown expression: $expr"))
+    case Var(sym)             => Success(Seq(Move(Rax(), Rsp - environment(sym).get))) // mov rax, [rsp - <offset>]
+    case Num(n)               => Success(Seq(Move(Rax(), Constant(n))))                  // mov rax, <n>
+    case Increment(e)         => compileExpression(e, environment).map(_ :+ ass.Increment(Rax()))
+    case Decrement(e)         => compileExpression(e, environment).map(_ :+ ass.Decrement(Rax()))
+    case Doubled(e)           => compileExpression(e, environment).map(_ :+ ass.Add(Rax(), Rax()))
+    case ifExpr: If[A]        => compileIfExpression(ifExpr, environment)
+    case _                    => Failure[Seq[Instruction]](UnknownExpressionException(s"Unknown expression: $expr"))
   }
 
 /** Compiles a 'Let' expression in an abstract syntax tree (AST) into assembly instructions.
@@ -105,14 +105,14 @@ private def compileLetExpression[A](
     bodyExpr: Expr[A],
     environment: Environment
 ): Try[Seq[Instruction]] = {
-  val extendedEnv     = environment + sym                                         // Ensure sym exists in extendedEnv
+  val extendedEnv     = environment + sym                     // Ensure sym exists in extendedEnv
   val compiledBinding = compileExpression(bindingExpr, environment)
-  val moveToStack     = Seq(Move(RegisterOffset(Rsp, -extendedEnv(sym).get), RegisterBox(Rax))) // mov [rsp - <offset>], rax
+  val moveToStack     = Move(Rsp - extendedEnv(sym).get, Rax()) // mov [rsp - <offset>], rax
   val compiledBody    = compileExpression(bodyExpr, extendedEnv)
   for {
     binding <- compiledBinding
     body    <- compiledBody
-  } yield binding ++ moveToStack ++ body
+  } yield binding ++ Seq(moveToStack) ++ body
 }
 
 /** Compiles an 'If' expression in an abstract syntax tree (AST) into a sequence of assembly instructions.
@@ -153,7 +153,7 @@ def compileIfExpression[A](
   } yield predicate ++
     Seq(
       ass.Label(ifLabel),
-      ass.Compare(RegisterBox(Rax), Constant(0)), // cmp rax, 0
+      ass.Compare(Rax(), Constant(0)), // cmp rax, 0
       ass.JumpIfEqual(elseLabel)       // jmp <else_label>
     ) ++ thenBranch ++
     Seq(

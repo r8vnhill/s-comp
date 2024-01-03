@@ -23,6 +23,25 @@ extension (gen: Gen.type) {
     n <- Gen.const(ast.terminal.Num[String](v))
   } yield n
 
+  /** Generates a random `Var` expression using string labels.
+   *
+   * This function creates a generator for `Var` expressions, which represent variable references in an abstract syntax
+   * tree (AST). Each `Var` expression is characterized by a name, which is a string label in this context. The
+   * generator uses [[Gen.stringLabel]] to create random string labels that conform to typical identifier patterns
+   * (alphanumeric characters and underscores).
+   *
+   * The generated string label is then used to create a `Var` expression instance. This method is particularly useful
+   * in property-based testing scenarios where diverse instances of variable expressions are beneficial for thorough
+   * evaluation of expression handling logic.
+   *
+   * @return
+   * A `Gen[ast.terminal.Var[String]]` that produces randomly generated `Var` expressions with string labels.
+   */
+  def varExpr: Gen[ast.terminal.Var[String]] = for {
+    name <- Gen.stringLabel
+    varExpr <- Gen.const(ast.terminal.Var(name))
+  } yield varExpr
+
   /** Generates an instance of the `Num` class from the `ast.terminal` package.
     *
     * This method extends the `Gen` object to create a generator specifically for generating instances of
@@ -38,7 +57,7 @@ extension (gen: Gen.type) {
     *   instances are determined by the underlying logic of the `num` method, which may involve randomized value
     *   generation.
     */
-  def terminal: Gen[ast.terminal.Num[String]] = gen.num()
+  def terminal: Gen[ast.Expr[String]] = gen.oneOf(gen.num(), gen.varExpr)
 
   /** Generates an instance of the `Increment` class from the `ast.unary` package.
     *
@@ -129,25 +148,6 @@ extension (gen: Gen.type) {
     ifExpr   <- Gen.const(ast.If(cond, thenExpr, elseExpr))
   } yield ifExpr
 
-  /** Generates a random `Var` expression using string labels.
-    *
-    * This function creates a generator for `Var` expressions, which represent variable references in an abstract syntax
-    * tree (AST). Each `Var` expression is characterized by a name, which is a string label in this context. The
-    * generator uses [[Gen.stringLabel]] to create random string labels that conform to typical identifier patterns
-    * (alphanumeric characters and underscores).
-    *
-    * The generated string label is then used to create a `Var` expression instance. This method is particularly useful
-    * in property-based testing scenarios where diverse instances of variable expressions are beneficial for thorough
-    * evaluation of expression handling logic.
-    *
-    * @return
-    *   A `Gen[ast.terminal.Var[String]]` that produces randomly generated `Var` expressions with string labels.
-    */
-  def varExpr: Gen[ast.terminal.Var[String]] = for {
-    name    <- Gen.stringLabel
-    varExpr <- Gen.const(ast.terminal.Var(name))
-  } yield varExpr
-
   /** Generates a random instance of a function expression, including unary operations and let bindings, within the
     * `ast` package.
     *
@@ -173,26 +173,29 @@ extension (gen: Gen.type) {
   def function(maxDepth: Int = 10): Gen[ast.Expr[String]] =
     gen.frequency((1, increment(maxDepth)), (1, decrement(maxDepth)), (3, let(maxDepth)), (2, ifExpr(maxDepth)))
 
-  /** Generates an instance of the `Expr` class from the `ast` package, representing an expression.
+  /** Generates an instance of the [[ast.Expr Expr]] class from the [[ast]] package, representing an expression.
     *
-    * This method extends the `Gen` object to create a generator for `ast.Expr` objects, which represent expressions in
-    * a simple expression language. The complexity of the generated expression is controlled by the `maxDepth`
-    * parameter. This generator is versatile, producing both simple terminal expressions and more complex
-    * function-invoking expressions, depending on the specified depth.
+    * This method extends the [[Gen]] object to create a generator for ``Expr`` objects, which represent expressions
+    * in a simple expression language. The generator is capable of producing both simple terminal expressions (such as
+    * numbers or variables) and more complex expressions (including function-invoking expressions like increment,
+    * decrement, let bindings, and conditionals) depending on the specified depth. The complexity of the generated
+    * expression is controlled by the [[maxDepth]] parameter.
     *
     * The method is particularly useful in property-based testing contexts, where it's beneficial to test the expression
-    * language implementation with a wide range of expression complexities and structures.
+    * language implementation with a wide range of expression complexities and structures. The `frequency` method from
+    * ScalaCheck's `Gen` is used to assign relative frequencies to different types of expressions, ensuring a varied
+    * distribution.
     *
     * @param maxDepth
-    *   The maximum depth of the expression tree, defaulting to 5. It determines the complexity of the generated
-    *   expression. A `maxDepth` of 0 results in a terminal expression (e.g., a number), whereas greater depths allow
-    *   for more complex expressions, including functions.
+    *   The maximum depth of the expression tree, defaulting to 10. It determines the complexity of the generated
+    *   expression. A `maxDepth` of 0 results in a terminal expression (e.g., a number or a variable), whereas greater
+    *   depths allow for more complex expressions, including various function-invoking operations.
     * @return
-    *   A `Gen[ast.Expr]` that produces instances of `ast.Expr`. The type of expression generated (terminal or
-    *   function-invoking) is based on the specified maximum depth.
+    *   A `Gen[ast.Expr[String]]` that produces instances of `ast.Expr`. The specific type of expression generated
+    *   (terminal or function-invoking) is based on the specified maximum depth and the assigned frequencies.
     */
   def expr(maxDepth: Int = 10): Gen[ast.Expr[String]] = maxDepth match {
     case 0 => gen.terminal
-    case _ => gen.frequency((2, gen.terminal), (1, gen.function(maxDepth)))
+    case _ => gen.frequency((4, gen.terminal), (1, gen.function(maxDepth)))
   }
 }

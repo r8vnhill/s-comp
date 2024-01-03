@@ -1,81 +1,64 @@
 package cl.ravenhill.scum
 package ass
 
-import ass.registry.Register
+import ass.registry.RegisterImpl
 
 /** Represents an argument in assembly language instructions.
   *
-  * This sealed trait `Arg` is used to define the types of arguments that can be passed to assembly language
-  * instructions. As a sealed trait, `Arg` ensures that all subtypes are known and contained within the same file,
-  * enabling exhaustive checking in pattern matching and enhancing the type safety of the code.
+  * `Arg` is a sealed trait used as a base for different types of arguments that can be passed to assembly language
+  * instructions. This trait allows for a polymorphic representation of arguments, enabling a unified approach to
+  * handling different types of operands in assembly language constructs.
   */
 sealed trait Arg
 
-/** Represents a constant value as an argument to an assembly instruction.
+/** Represents a constant value as an argument in assembly language instructions.
   *
-  * `Const` is a case class that extends the `Arg` trait, encapsulating an integer value to be used as a constant in
-  * assembly language instructions. The immutability of case classes in Scala ensures that once a `Const` instance is
-  * created, the value it holds cannot be altered, mirroring the immutable nature of constants in assembly language.
+  * `Constant` is a case class that extends the `Arg` trait. It represents constant integer values that can be used as
+  * arguments in assembly language instructions. The value is encapsulated in a concrete representation, making it
+  * suitable for use in constructing assembly instructions within Scala-based representations.
   *
   * @param value
-  *   The integer value that this `Const` instance represents.
+  *   The integer value of the constant.
   */
-case class Constant(value: Int) extends Arg {
+case class Constant(value: Int) extends Arg with impl.ConstantImpl(value)
 
-  /** Returns a string representation of the object.
-    *
-    * The string representation is obtained by calling `toString` on the `value` property.
-    *
-    * @return
-    *   the string representation of the object
-    */
-  override def toString: String = value.toString
-}
-
-/** Represents a register as an argument to an assembly instruction.
+/** Base trait for representing CPU registers in assembly language.
   *
-  * `Reg` is a case class that extends the `Arg` trait, used for representing a CPU register in the context of an
-  * assembly instruction. It holds a reference to a `Registry` instance, which indicates the specific register being
-  * referred to. This class allows for the abstraction of register-based operations in the assembly language
-  * representation within Scala.
-  *
-  * @param reg
-  *   The `Registry` instance representing the specific register.
+  * `Register` is a sealed trait that extends the `Arg` trait and mixes in the `impl.RegisterImpl` trait. It acts as a
+  * base for different types of CPU registers, providing common functionality and representation for registers in
+  * assembly language instructions.
   */
-case class RegisterBox(reg: Register) extends Arg {
+sealed trait Register extends Arg with RegisterImpl
 
-  /** Returns a string representation of this object.
-    *
-    * The string representation is obtained by calling `toString` ([[Register.toString]]) on the `reg` property.
-    *
-    * @return
-    *   the string representation of this object
-    */
-  override def toString: String = reg.toString
-}
-
-/** Represents an argument in assembly language that combines a register with an offset.
+/** Represents the RAX register in x86-64 assembly programming.
   *
-  * `RegOffset` is a case class that extends the [[Arg]] trait, modeling an argument that consists of a register and an
-  * offset. This type of argument is commonly used in assembly language for memory addressing, where an offset is
-  * applied to a base address in a register.
+  * `Rax` is a case class extending the `Register` trait. It specifically represents the RAX register, commonly used in
+  * x86-64 assembly language. The class allows for a type-safe and clear representation of the RAX register, along with
+  * an optional integer offset for more complex addressing.
   *
-  * @param reg
-  *   The base register for the argument.
   * @param offset
-  *   The offset to be applied to the base register. The actual offset used in the representation is calculated as 8 *
-  *   offset.
+  *   The integer offset associated with the RAX register, defaulting to `RegisterImpl.defaultOffset`.
   */
-case class RegisterOffset(reg: Register, offset: Int) extends Arg {
+case class Rax(override val offset: Int = RegisterImpl.defaultOffset) extends Register
 
-  /** Returns a string representation of the register-offset combination.
-    *
-    * This method overrides the `toString` method to return a string that represents the argument in a format typical of
-    * assembly language memory addressing. The format is "[register + 8 * offset]", where 'register' is the base
-    * register and 'offset' is the scaled offset value.
-    *
-    * @return
-    *   A string representing the register-offset argument in assembly language syntax.
-    */
-  override def toString: String = s"[${reg.toString} + 8 * $offset]"
-}
+/** Represents the EAX register in x86 assembly programming.
+  *
+  * `Eax` is a case class extending the `Register` trait. It represents the EAX register, widely used in x86 assembly
+  * language. This class provides a convenient way to refer to the EAX register in Scala-based assembly language
+  * representations, along with an optional offset for addressing.
+  *
+  * @param offset
+  *   The integer offset associated with the EAX register, defaulting to `RegisterImpl.defaultOffset`.
+  */
+case class Eax(override val offset: Int = RegisterImpl.defaultOffset) extends Register
+
+/** Represents the RSP (Stack Pointer) register in assembly language.
+  *
+  * `Rsp` is a case class that extends the `Register` trait. It models the RSP register, used in assembly language for
+  * stack management. This class offers a type-safe representation of the RSP register, along with an optional offset
+  * for advanced addressing modes.
+  *
+  * @param offset
+  *   An optional integer offset for the RSP register, defaulting to `RegisterImpl.defaultOffset`.
+  */
+case class Rsp(override val offset: Int = RegisterImpl.defaultOffset) extends Register
