@@ -1,6 +1,8 @@
 package cl.ravenhill.scum
 package ass
 
+import ass.registry.Register
+
 /** Represents an argument in assembly language instructions.
   *
   * This sealed trait `Arg` is used to define the types of arguments that can be passed to assembly language
@@ -18,7 +20,7 @@ sealed trait Arg
   * @param value
   *   The integer value that this `Const` instance represents.
   */
-case class Const(value: Int) extends Arg {
+case class Constant(value: Int) extends Arg {
 
   /** Returns a string representation of the object.
     *
@@ -40,11 +42,11 @@ case class Const(value: Int) extends Arg {
   * @param reg
   *   The `Registry` instance representing the specific register.
   */
-case class Reg(reg: Register) extends Arg {
+case class RegisterBox(reg: Register) extends Arg {
 
   /** Returns a string representation of this object.
     *
-    * The string representation is obtained by calling `toString` ([[Reg.toString]]) on the `reg` property.
+    * The string representation is obtained by calling `toString` ([[Register.toString]]) on the `reg` property.
     *
     * @return
     *   the string representation of this object
@@ -64,7 +66,7 @@ case class Reg(reg: Register) extends Arg {
   *   The offset to be applied to the base register. The actual offset used in the representation is calculated as 8 *
   *   offset.
   */
-case class RegOffset(reg: Register, offset: Int) extends Arg {
+case class RegisterOffset(reg: Register, offset: Int) extends Arg {
 
   /** Returns a string representation of the register-offset combination.
     *

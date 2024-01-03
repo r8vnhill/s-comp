@@ -8,9 +8,25 @@ import generators.*
 class InstructionTest extends AbstractScumTest {
   "A Mov instruction" - {
     "should store the source passed to the constructor" in {
+      var collected = Map.empty[Arg, Int]
       forAll(Gen.arg, Gen.arg) { (src: Arg, dst: Arg) =>
+        collected = collected.get(src) match {
+          case Some(count) => collected + (src -> (count + 1))
+          case None        => collected + (src -> 1)
+        }
         Move(dst, src).src should be(src)
       }
+      val totalCount = collected.values.sum.toDouble
+
+      val sortedByPercentage = collected
+        .map { case (sym, count) => (sym, (count / totalCount) * 100) }
+        .toList
+        .sortBy(_._2)(Ordering[Double].reverse)
+
+      val prettyPrinted = sortedByPercentage
+        .map { case (sym, percentage) => f"$percentage%.2f%% - $sym" }
+        .mkString("\n")
+      println(prettyPrinted)
     }
 
     "should store the destination passed to the constructor" in {

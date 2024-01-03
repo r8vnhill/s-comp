@@ -38,8 +38,11 @@ package object generators {
       * @return
       *   A `Gen[String]` that produces non-empty ASCII strings matching the specified regular expression.
       */
-    def stringLabel: Gen[String] = Gen.asciiStr
-      .suchThat(_.nonEmpty)
-      .suchThat(_.matches("^[a-zA-Z0-9_]+$"))
+    def stringLabel: Gen[String] = {
+      Gen.asciiStr
+        .map(_.replaceAll("[^a-zA-Z0-9_]", ""))
+        .suchThat(_.nonEmpty)
+        .suchThat(!_.head.isDigit)
+    }
   }
 }

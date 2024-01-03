@@ -4,14 +4,19 @@ import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
+import java.util.concurrent.atomic.AtomicInteger
+
 abstract class AbstractScumTest extends AnyFreeSpec with should.Matchers with ScalaCheckPropertyChecks {
-  private var counter = 0
+  private val counter: AtomicInteger = AtomicInteger(0)
   given Metadata[String] with {
     override def data: String = { // Simple gensym implementation for testing
-      counter += 1
+      counter.getAndAdd(1)
       s"metadata $counter"
     }
-    
+
     override def toString: String = data
   }
+
+  implicit override val generatorDrivenConfig: PropertyCheckConfiguration =
+    PropertyCheckConfiguration(minSuccessful = 1000, workers = 4)
 }

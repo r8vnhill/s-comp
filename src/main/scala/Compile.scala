@@ -5,6 +5,8 @@ import ast.terminal.{Num, Var}
 import ast.unary.{Decrement, Doubled, Increment}
 import ast.{Expr, If, Let}
 
+import cl.ravenhill.scum.ass.registry.{Rax, Rsp}
+
 import scala.util.{Failure, Success, Try}
 
 /** Compiles an integer program into a string representation of its assembly instructions.
@@ -63,11 +65,11 @@ private[scum] def compileExpression[A](
 ): Try[Seq[Instruction]] =
   expr match {
     case Let(sym, expr, body) => compileLetExpression(sym, expr, body, environment)
-    case Var(sym)     => Success(Seq(Move(Reg(Rax), RegOffset(Rsp, -environment(sym).get)))) // mov rax, [rsp - <offset>]
-    case Num(n)       => Success(Seq(Move(Reg(Rax), Const(n))))                              // mov rax, <n>
-    case Increment(e) => compileExpression(e, environment).map(_ :+ ass.Increment(Reg(Rax)))
-    case Decrement(e) => compileExpression(e, environment).map(_ :+ ass.Decrement(Reg(Rax)))
-    case Doubled(e)   => compileExpression(e, environment).map(_ :+ ass.Add(Reg(Rax), Reg(Rax)))
+    case Var(sym)     => Success(Seq(Move(RegisterBox(Rax), RegisterOffset(Rsp, -environment(sym).get)))) // mov rax, [rsp - <offset>]
+    case Num(n)       => Success(Seq(Move(RegisterBox(Rax), Constant(n))))                              // mov rax, <n>
+    case Increment(e) => compileExpression(e, environment).map(_ :+ ass.Increment(RegisterBox(Rax)))
+    case Decrement(e) => compileExpression(e, environment).map(_ :+ ass.Decrement(RegisterBox(Rax)))
+    case Doubled(e)   => compileExpression(e, environment).map(_ :+ ass.Add(RegisterBox(Rax), RegisterBox(Rax)))
     case ifExpr: If[A] => compileIfExpression(ifExpr, environment)
     case _             => Failure[Seq[Instruction]](UnknownExpressionException(s"Unknown expression: $expr"))
   }
@@ -105,7 +107,7 @@ private def compileLetExpression[A](
 ): Try[Seq[Instruction]] = {
   val extendedEnv     = environment + sym                                         // Ensure sym exists in extendedEnv
   val compiledBinding = compileExpression(bindingExpr, environment)
-  val moveToStack     = Seq(Move(RegOffset(Rsp, -extendedEnv(sym).get), Reg(Rax))) // mov [rsp - <offset>], rax
+  val moveToStack     = Seq(Move(RegisterOffset(Rsp, -extendedEnv(sym).get), RegisterBox(Rax))) // mov [rsp - <offset>], rax
   val compiledBody    = compileExpression(bodyExpr, extendedEnv)
   for {
     binding <- compiledBinding
@@ -151,7 +153,7 @@ def compileIfExpression[A](
   } yield predicate ++
     Seq(
       ass.Label(ifLabel),
-      ass.Compare(Reg(Rax), Const(0)), // cmp rax, 0
+      ass.Compare(RegisterBox(Rax), Constant(0)), // cmp rax, 0
       ass.JumpIfEqual(elseLabel)       // jmp <else_label>
     ) ++ thenBranch ++
     Seq(

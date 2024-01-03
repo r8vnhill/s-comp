@@ -10,7 +10,7 @@ class DoubledTest extends AbstractScumTest {
   "A Doubled expression" - {
     "should store the sub-expression passed to the constructor" in {
       forAll(Gen.expr()) { e =>
-        Doubled(e, 0).expr should be(e)
+        Doubled(e).expr should be(e)
       }
     }
   }

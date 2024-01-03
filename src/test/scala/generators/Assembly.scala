@@ -1,7 +1,8 @@
 package cl.ravenhill.scum
 package generators
 
-import ass.{Arg, Compare, Const, Move}
+import ass.registry.{Rax, Register}
+import ass.{Arg, Compare, Constant, Move}
 
 import org.scalacheck.Gen
 
@@ -18,7 +19,10 @@ extension (gen: Gen.type) {
     * @return
     *   A `Gen[Const]` that produces `Const` instances with potentially randomized values.
     */
-  def constant(value: Gen[Int] = gen.int()): Gen[Const] = gen.const(ass.Const(value.sample.get))
+  def constant(value: Gen[Int] = gen.int()): Gen[Constant] = for {
+    v <- value
+    const <- gen.const(ass.Constant(v))
+  } yield const
 
   /** Generates a `Mov` instruction with randomly selected arguments.
     *
@@ -35,7 +39,11 @@ extension (gen: Gen.type) {
     * @return
     *   A `Gen[Mov]` that produces instances of `Mov` instructions with randomly generated arguments.
     */
-  def mov(dst: Gen[Arg] = gen.arg, src: Gen[Arg] = gen.arg): Gen[Move] = gen.const(Move(dst.sample.get, src.sample.get))
+  def move(dst: Gen[Arg] = gen.arg, src: Gen[Arg] = gen.arg): Gen[Move] = for {
+    dst <- dst
+    src <- src
+    move <- gen.const(Move(dst, src))
+  } yield move
 
   /** Generates a `Cmp` instruction with randomly selected arguments, encapsulated within a `Mov` generator.
     *
@@ -53,7 +61,27 @@ extension (gen: Gen.type) {
     * @return
     *   A `Gen[Mov]` that produces instances of `Cmp` instructions with randomly generated arguments.
     */
-  def cmp(dst: Gen[Arg] = gen.arg, src: Gen[Arg] = gen.arg): Gen[Move] = gen.const(Compare(dst.sample.get, src.sample.get))
+  def compare(dst: Gen[Arg] = gen.arg, src: Gen[Arg] = gen.arg): Gen[Compare] = for {
+    dst <- dst
+    src <- src
+    compare <- gen.const(Compare(dst, src))
+  } yield compare
+
+  /** Generates a random `Register` from a predefined set.
+    *
+    * This method utilizes ScalaCheck's `Gen.oneOf` to randomly select and generate a `Register` instance from a set of
+    * predefined registers. The set includes `Rax`, `Eax`, and `Rsp` from the `ass.registry` package. This method is
+    * particularly useful in scenarios where a random but valid register is needed, such as in property-based testing of
+    * assembly language code generation and manipulation.
+    *
+    * The `Register` class represents CPU registers, which are small storage locations within the CPU used to quickly
+    * access and store data during computation. Different types of registers (like `Rax`, `Eax`, `Rsp`) are used for
+    * various purposes in assembly language programming.
+    *
+    * @return
+    *   A `Gen[Register]` that produces one of the predefined `Register` instances (`Rax`, `Eax`, `Rsp`).
+    */
+  def register: Gen[Register] = gen.oneOf(ass.registry.Rax, ass.registry.Eax, ass.registry.Rsp)
 
   /** Generates a registry argument for assembly language.
     *
@@ -63,7 +91,9 @@ extension (gen: Gen.type) {
     * @return
     *   A `Gen[Reg]` that produces `Reg` instances, currently limited to `Rax`.
     */
-  def registry: Gen[ass.Reg] = gen.oneOf(Seq(ass.Reg(ass.Rax)))
+  def registerBox: Gen[ass.RegisterBox] = for {
+    register <- gen.register
+  } yield ass.RegisterBox(register)
 
   /** Generates a general assembly language argument.
     *
@@ -73,7 +103,7 @@ extension (gen: Gen.type) {
     * @return
     *   A `Gen[Arg]` that produces either `Const` or `Reg` instances, depending on the random choice.
     */
-  def arg: Gen[ass.Arg] = gen.oneOf(gen.constant(), gen.registry)
+  def arg: Gen[ass.Arg] = gen.oneOf(gen.constant(), gen.registerBox)
 
   /** Generates a random assembly language instruction.
     *
@@ -89,5 +119,5 @@ extension (gen: Gen.type) {
     *   A `Gen[Instruction]` that produces `Instruction` instances, specifically `Mov` instructions with randomly
     *   generated arguments.
     */
-  def instruction: Gen[ass.Instruction] = gen.oneOf(Seq(ass.Move(gen.arg.sample.get, gen.arg.sample.get)))
+  def instruction: Gen[ass.Instruction] = gen.oneOf(gen.move(), gen.compare())
 }

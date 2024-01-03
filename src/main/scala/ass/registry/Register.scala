@@ -1,5 +1,5 @@
 package cl.ravenhill.scum
-package ass
+package ass.registry
 
 /** Represents a CPU register in assembly language programming.
   *
