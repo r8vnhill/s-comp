@@ -2,7 +2,7 @@ package cl.ravenhill.scum
 package generators
 
 import cl.ravenhill.scum.ast
-import cl.ravenhill.scum.ast.Var
+import cl.ravenhill.scum.ast.{Decrement, Var}
 import org.scalacheck.Gen
 
 extension (gen: Gen.type) {
@@ -82,9 +82,9 @@ extension (gen: Gen.type) {
     *   A `Gen[ast.unary.Increment]` that produces instances of `ast.unary.Increment`. Each instance contains an
     *   expression to be incremented, generated based on the specified maximum depth.
     */
-  def increment(maxDepth: Int = 10): Gen[ast.unary.Increment[String]] = for {
+  def increment(maxDepth: Int = 10): Gen[ast.unary.IncrementImpl[String]] = for {
     expr <- gen.expr(maxDepth - 1)
-    inc  <- gen.const(ast.unary.Increment(expr))
+    inc  <- gen.const(ast.unary.IncrementImpl(expr))
   } yield inc
 
   /** Generates an instance of the `Decrement` class from the `ast.unary` package.
@@ -106,9 +106,9 @@ extension (gen: Gen.type) {
     *   A `Gen[ast.unary.Decrement]` that produces instances of `ast.unary.Decrement`. Each generated instance contains
     *   an expression subject to decrement, determined based on the specified maximum depth.
     */
-  def decrement(maxDepth: Int = 10): Gen[ast.unary.Decrement[String]] = for {
+  def decrement(maxDepth: Int = 10): Gen[Decrement[String]] = for {
     expr <- gen.expr(maxDepth - 1)
-    dec  <- gen.const(ast.unary.Decrement(expr))
+    dec  <- gen.const(ast.Decrement(expr))
   } yield dec
 
   /** Generates a `Let` expression for testing purposes.

@@ -1,8 +1,8 @@
 package cl.ravenhill.scum
 
 import asm.*
-import ast.unary.{Decrement, Doubled, Increment}
-import ast.{Expression, If, Let, Num, Var}
+import ast.unary.{Doubled, IncrementImpl}
+import ast.{Decrement, Expression, If, Let, Num, Var}
 
 import cl.ravenhill.scum.asm.registry.-
 
@@ -48,7 +48,7 @@ def compileProgram[A](program: ast.Expression[A]): String = {
   * This function takes an expression from the abstract syntax tree (AST) and an environment mapping variable names to
   * their respective stack slots. It recursively compiles the expression into a sequence of low-level instructions.
   * Supported expressions include variable declarations ([[Let]]), variable references ([[Var]]), numeric literals
-  * ([[Num]]), and unary operations like increment ([[Increment]]), decrement ([[Decrement]]), and doubling
+  * ([[Num]]), and unary operations like increment ([[IncrementImpl]]), decrement ([[Decrement]]), and doubling
   * ([[Doubled]]).
   *
   * @param expr
@@ -66,7 +66,7 @@ private[scum] def compileExpression[A](
     case Let(sym, expr, body) => compileLetExpression(sym, expr, body, environment)
     case Var(sym)      => environment(sym).map(offset => Seq(Move(Rax(), Rsp - offset))) // mov rax, [rsp - <offset>]
     case Num(n)        => Success(Seq(Move(Rax(), Constant(n))))                         // mov rax, <n>
-    case Increment(e)  => compileExpression(e, environment).map(_ :+ asm.Increment(Rax()))
+    case IncrementImpl(e)  => compileExpression(e, environment).map(_ :+ asm.Increment(Rax()))
     case Decrement(e)  => compileExpression(e, environment).map(_ :+ asm.Decrement(Rax()))
     case Doubled(e)    => compileExpression(e, environment).map(_ :+ asm.Add(Rax(), Rax()))
     case ifExpr: If[A] => compileIfExpression(ifExpr, environment)
@@ -175,7 +175,7 @@ private def annotate(expression: Expression[String]): Expression[String] = {
     case Let(sym, expr, body) => Let(sym, annotate(expr), annotate(body))
     case Var(sym)             => Var(sym)
     case Num(n)               => Num(n)
-    case Increment(e)         => Increment(annotate(e))
+    case IncrementImpl(e)         => IncrementImpl(annotate(e))
     case Decrement(e)         => Decrement(annotate(e))
     case Doubled(e)           => Doubled(annotate(e))
     case _                    => throw UnknownExpressionException(s"Unknown expression: $expression")

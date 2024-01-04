@@ -1,8 +1,9 @@
 package cl.ravenhill.scum
 
 import asm.*
-import ast.unary.{Decrement, Doubled, Increment}
+import ast.unary.{Doubled, IncrementImpl}
 import generators.{expr, num}
+import cl.ravenhill.scum.ast.Decrement
 import org.scalacheck.Gen
 
 class CompileTest extends AbstractScumTest {

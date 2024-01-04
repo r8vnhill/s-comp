@@ -3,6 +3,8 @@ package ast.unary
 
 import org.scalacheck.Gen
 import generators.expr
+
+import cl.ravenhill.scum.ast.Decrement
 class DecrementTest extends AbstractScumTest {
 
   "A Decrement expression" - {
