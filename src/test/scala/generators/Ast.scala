@@ -82,9 +82,9 @@ extension (gen: Gen.type) {
     *   A `Gen[ast.unary.Increment]` that produces instances of `ast.unary.Increment`. Each instance contains an
     *   expression to be incremented, generated based on the specified maximum depth.
     */
-  def increment(maxDepth: Int = 10): Gen[ast.unary.IncrementImpl[String]] = for {
+  def increment(maxDepth: Int = 10): Gen[ast.Increment[String]] = for {
     expr <- gen.expr(maxDepth - 1)
-    inc  <- gen.const(ast.unary.IncrementImpl(expr))
+    inc  <- gen.const(ast.Increment(expr))
   } yield inc
 
   /** Generates an instance of the `Decrement` class from the `ast.unary` package.

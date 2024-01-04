@@ -64,13 +64,36 @@ private[scum] def compileExpression[A](
 ): Try[Seq[Instruction]] =
   expr match {
     case ast.Let(sym, expr, body) => compileLetExpression(sym, expr, body, environment)
-    case ast.Var(sym)     => environment(sym).map(offset => Seq(Move(Rax(), Rsp - offset))) // mov rax, [rsp - <offset>]
-    case ast.Num(n)       => Success(Seq(Move(Rax(), Constant(n))))                         // mov rax, <n>
+    case ast.Var(sym) => environment(sym).map(offset => Seq(Move(Rax(), Rsp - offset))) // mov rax, [rsp - <offset>]
+    case ast.Num(n)   => Success(Seq(Move(Rax(), Constant(n))))                         // mov rax, <n>
+    case e: ast.UnaryOperation[A] => compileUnaryOperation(e, environment)
+    case ifExpr: ast.If[A]        => compileIfExpression(ifExpr, environment)
+  }
+
+/** Compiles a unary operation expression into a sequence of machine instructions.
+  *
+  * This function takes a `UnaryOperation` and an `Environment`, and compiles the unary operation into a sequence of
+  * assembly instructions. The specific type of unary operation (Increment, Decrement, Doubled) determines the exact
+  * sequence of instructions generated. The compilation process involves first compiling the expression contained within
+  * the unary operation and then appending the appropriate assembly instruction that performs the unary operation
+  * (Increment, Decrement, or Doubling).
+  *
+  * @param value
+  *   The unary operation expression to be compiled.
+  * @param environment
+  *   The environment context used during compilation, which may contain variable bindings, function definitions, or
+  *   other relevant contextual information.
+  * @return
+  *   A `Try` containing a sequence of `Instruction`s representing the compiled unary operation, or a failure if the
+  *   compilation is unsuccessful.
+  */
+private def compileUnaryOperation(value: UnaryOperation[_], environment: Environment): Try[Seq[Instruction]] = {
+  value match {
     case ast.Increment(e) => compileExpression(e, environment).map(_ :+ asm.Increment(Rax()))
     case ast.Decrement(e) => compileExpression(e, environment).map(_ :+ asm.Decrement(Rax()))
     case ast.Doubled(e)   => compileExpression(e, environment).map(_ :+ asm.Add(Rax(), Rax()))
-    case ifExpr: ast.If[A] => compileIfExpression(ifExpr, environment)
   }
+}
 
 /** Compiles a 'Let' expression in an abstract syntax tree (AST) into assembly instructions.
   *

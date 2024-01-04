@@ -53,18 +53,32 @@ case class Var[A](sym: String)(using override val metadata: Metadata[A])
     extends Expression[A]
     with terminal.VarImpl(sym)
 
+/** Represents the base trait for unary operations in an abstract syntax tree (AST).
+  *
+  * The `UnaryOperation` trait serves as a foundational component in an AST for representing unary operations. Unary
+  * operations are operations that operate on a single operand. This trait extends the `Expression` trait, emphasizing
+  * that unary operations themselves are expressions. It defines a common structure for all unary operations by
+  * including a single expression (`expr`) as a component. This approach allows for a consistent and extensible way to
+  * represent various unary operations such as negation, increment, or logical not.
+  *
+  * @tparam A
+  *   The type of the metadata associated with the unary operation expression.
+  */
+sealed trait UnaryOperation[A] extends Expression[A] {
+
+  /** The expression that the unary operation is applied to. */
+  val expr: Expression[A]
+}
+
 /** Represents a decrement operation expression (`--expr`) in an abstract syntax tree (AST).
   *
-  * `Decrement` is a case class that extends the `ast.Expression` trait, specifically to represent a decrement operation
-  * in an AST. It encapsulates an expression to be decremented, along with metadata associated with the operation. The
-  * `Decrement` class is a part of the polymorphic AST structure where each expression, including operations like
-  * decrement, can carry additional metadata of type `A`.
+  * `Decrement` is a case class that extends the `UnaryOperation` trait, specifically to represent a decrement operation
+  * in an AST. As a unary operation, it encapsulates a single expression (`expr`) to be decremented. This class is a
+  * part of the polymorphic AST structure where each expression, including unary operations like decrement, can carry
+  * additional metadata of type `A`.
   *
-  * The class also mixes in the `unary.DecrementImpl` trait, which provides the implementation details for the decrement
-  * operation, including a custom `toString` method for the operation representation.
-  *
-  * __Usage__ This class is used to represent a decrement operation in an AST, typically in the context of interpreting,
-  * compiling, or manipulating expressions in a programming language or a domain-specific language (DSL).
+  * The class also implements the `unary.DecrementImpl` trait, providing the implementation details for the decrement
+  * operation, including a custom `toString` method that represents the operation.
   *
   * @tparam A
   *   The type of the metadata associated with this decrement operation expression.
@@ -72,29 +86,20 @@ case class Var[A](sym: String)(using override val metadata: Metadata[A])
   *   The expression that is to be decremented.
   * @param metadata
   *   The metadata associated with this decrement operation expression, provided implicitly.
-  * @example
-  *   {{{
-  * val expr = Var[Int]("x")
-  * val decrementExpr = Decrement(expr)
-  * println(decrementExpr) // prints "--(x)"
-  *   }}}
   */
-case class Decrement[A](expr: ast.Expression[A])(using override val metadata: Metadata[A])
-    extends ast.Expression[A]
+case class Decrement[A](override val expr: Expression[A])(using override val metadata: Metadata[A])
+    extends UnaryOperation[A]
     with unary.DecrementImpl(expr)
 
 /** Represents an increment operation expression (`++expr`) in an abstract syntax tree (AST).
   *
-  * `Increment` is a case class that extends the `ast.Expression` trait, specifically to represent an increment
-  * operation in an AST. It encapsulates an expression to be incremented, along with metadata associated with the
-  * operation. The `Increment` class is a part of the polymorphic AST structure where each expression, including
-  * operations like increment, can carry additional metadata of type `A`.
+  * `Increment` is a case class that extends the `ast.UnaryOperation` trait, specifically to represent an increment
+  * operation in an AST. As a unary operation, it encapsulates a single expression (`expr`) to be incremented. This
+  * class is a part of the polymorphic AST structure where each expression, including unary operations like increment,
+  * can carry additional metadata of type `A`.
   *
-  * The class also mixes in the `unary.IncrementImpl` trait, which provides the implementation details for the increment
-  * operation, including a custom `toString` method for the operation representation.
-  *
-  * __Usage:__ This class is used to represent an increment operation in an AST, typically in the context of
-  * interpreting, compiling, or manipulating expressions in a programming language or a domain-specific language (DSL).
+  * The class also implements the `unary.IncrementImpl` trait, providing the implementation details for the increment
+  * operation, including a custom `toString` method that represents the operation.
   *
   * @tparam A
   *   The type of the metadata associated with this increment operation expression.
@@ -102,29 +107,20 @@ case class Decrement[A](expr: ast.Expression[A])(using override val metadata: Me
   *   The expression that is to be incremented.
   * @param metadata
   *   The metadata associated with this increment operation expression, provided implicitly.
-  * @example
-  *   {{{
-  * val expr = Var[Int]("x")
-  * val incrementExpr = Increment(expr)
-  * println(incrementExpr) // prints "++(x)"
-  *   }}}
   */
 case class Increment[A](expr: ast.Expression[A])(using override val metadata: Metadata[A])
-    extends ast.Expression[A]
+    extends ast.UnaryOperation[A]
     with unary.IncrementImpl(expr)
 
 /** Represents a 'doubled' operation expression in an abstract syntax tree (AST).
   *
-  * The `Doubled` case class extends the `Expression` trait to specifically represent a 'doubled' operation on an
-  * expression within an AST. It encapsulates an expression that is to be doubled, and includes metadata associated with
-  * this operation. The class forms a part of the polymorphic AST structure, where each expression, including operations
-  * like 'doubled', can carry additional metadata of type `A`.
+  * The `Doubled` case class extends the `UnaryOperation` trait, specifically to represent a 'doubled' operation on an
+  * expression within an AST. As a unary operation, it encapsulates a single expression (`expr`) that is to be doubled.
+  * This class is a part of the polymorphic AST structure, where each expression, including unary operations like
+  * 'doubled', can carry additional metadata of type `A`.
   *
-  * Additionally, this class mixes in the `unary.DoubledImpl` trait, which provides implementation details for the
-  * 'doubled' operation, including a custom `toString` method that represents the operation.
-  *
-  * ## Usage: `Doubled` is utilized to represent a 'doubled' operation in an AST, commonly found in contexts such as
-  * interpreting, compiling, or manipulating expressions in programming or domain-specific languages (DSLs).
+  * The class also implements the `unary.DoubledImpl` trait, providing implementation details for the 'doubled'
+  * operation, including a custom `toString` method that represents the operation.
   *
   * @tparam A
   *   The type of the metadata associated with this 'doubled' operation expression.
@@ -132,15 +128,9 @@ case class Increment[A](expr: ast.Expression[A])(using override val metadata: Me
   *   The expression that is to be doubled.
   * @param metadata
   *   The metadata associated with this 'doubled' operation expression, provided implicitly.
-  * @example
-  *   {{{
-  * val expr = Var[Int]("x")
-  * val doubledExpr = Doubled(expr)
-  * println(doubledExpr) // prints "doubled(x)"
-  *   }}}
   */
 case class Doubled[A](expr: Expression[A])(using override val metadata: Metadata[A])
-    extends Expression[A]
+    extends UnaryOperation[A]
     with unary.DoubledImpl(expr)
 
 /** Represents an 'if' conditional expression in an abstract syntax tree (AST).
@@ -153,10 +143,7 @@ case class Doubled[A](expr: Expression[A])(using override val metadata: Metadata
   *
   * This class also implements the `IfImpl` trait, which provides the implementation details for the 'if' conditional,
   * including a custom `toString` method that represents the entire conditional expression.
-  *
-  * ## Usage: `If` is used to represent an 'if' conditional expression in an AST, commonly found in contexts such as
-  * interpreting, compiling, or manipulating expressions in programming or domain-specific languages (DSLs).
-  *
+ * 
   * @tparam A
   *   The type of the metadata associated with this 'if' conditional expression.
   * @param predicate
@@ -167,14 +154,6 @@ case class Doubled[A](expr: Expression[A])(using override val metadata: Metadata
   *   The expression to be executed if the predicate evaluates to false.
   * @param metadata
   *   The metadata associated with this 'if' conditional expression, provided implicitly.
-  * @example
-  *   {{{
-  * val condition = Var[Int]("condition")
-  * val thenExpr = Var[Int]("thenBranch")
-  * val elseExpr = Var[Int]("elseBranch")
-  * val ifExpr = If(condition, thenExpr, elseExpr)
-  * println(ifExpr) // prints "if (condition) then { thenBranch } else { elseBranch }"
-  *   }}}
   */
 case class If[A](predicate: Expression[A], thenBranch: Expression[A], elseBranch: Expression[A])(using
     override val metadata: Metadata[A]
@@ -192,9 +171,6 @@ case class If[A](predicate: Expression[A], thenBranch: Expression[A], elseBranch
   * This class also implements the `LetImpl` trait, providing the implementation details for the 'let' binding,
   * including a custom `toString` method that represents the entire binding expression.
   *
-  * __Usage:__ `Let` is used to represent a 'let' binding expression in an AST, commonly found in contexts such as
-  * interpreting, compiling, or manipulating expressions in programming or domain-specific languages (DSLs).
-  *
   * @tparam A
   *   The type of the metadata associated with this 'let' binding expression.
   * @param sym
@@ -205,13 +181,6 @@ case class If[A](predicate: Expression[A], thenBranch: Expression[A], elseBranch
   *   The body expression where the symbol binding is used.
   * @param metadata
   *   The metadata associated with this 'let' binding expression, provided implicitly.
-  * @example
-  *   {{{
-  * val bindingExpr = Var[Int]("x")
-  * val bodyExpr = Var[Int]("y")
-  * val letExpr = Let("x", bindingExpr, bodyExpr)
-  * println(letExpr) // Outputs a string representation of the 'let' binding expression
-  *   }}}
   */
 case class Let[A](sym: String, expr: Expression[A], body: Expression[A])(using val metadata: Metadata[A])
     extends Expression[A]
