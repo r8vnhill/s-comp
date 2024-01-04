@@ -9,10 +9,10 @@ import scala.util.Try
   * maintains a mapping of variable names to integer slots, which could represent memory addresses, stack positions, or
   * other relevant indices. The environment is initially empty and can be dynamically expanded.
   *
-  * @param env
+  * @param bindings
   *   The initial map of variable names to slots. Default is an empty map.
   */
-class Environment(private var env: Map[String, Int] = Map.empty[String, Int]) {
+class Environment(private[scum] var bindings: Map[String, Int] = Map.empty[String, Int]) {
 
   /** Auxiliary constructor creating an environment from a sequence of key-value pairs.
     *
@@ -36,7 +36,7 @@ class Environment(private var env: Map[String, Int] = Map.empty[String, Int]) {
     * @return
     *   A `Try[Int]` that is successful with the slot number if the variable exists, or a failure if not found.
     */
-  def apply(name: String): Try[Int] = Try(env(name))
+  def apply(name: String): Try[Int] = Try(bindings(name))
 
   /** Retrieves all variable names currently stored in the environment.
     *
@@ -46,10 +46,19 @@ class Environment(private var env: Map[String, Int] = Map.empty[String, Int]) {
     * @return
     *   An `Iterable[String]` containing all the variable names in the environment.
     */
-  def keys: Iterable[String] = env.keys
+  def boundNames: Iterable[String] = bindings.keys
 
-  def isEmpty: Boolean = env.isEmpty
-  
+  /** Checks if the environment is empty.
+    *
+    * This method determines whether the environment contains any variable mappings. An empty environment is one that
+    * has no variable names mapped to any slots. This can be particularly useful to check before performing operations
+    * that require a non-empty environment or to validate the state of the environment at a given point in time.
+    *
+    * @return
+    *   `true` if the environment is empty (contains no mappings), `false` otherwise.
+    */
+  def isEmpty: Boolean = bindings.isEmpty
+
   /** Adds a new variable to the environment with an automatically assigned slot number.
     *
     * This method adds a new variable to the environment. The slot number is assigned based on the current size of the
@@ -63,8 +72,8 @@ class Environment(private var env: Map[String, Int] = Map.empty[String, Int]) {
     */
   @targetName("add")
   def +(name: String): Environment = {
-    val slot = 1 + env.size
-    Environment(env + (name -> slot))
+    val slot = 1 + bindings.size
+    Environment(bindings + (name -> slot))
   }
 }
 

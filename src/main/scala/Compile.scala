@@ -1,9 +1,8 @@
 package cl.ravenhill.scum
 
 import asm.*
-import ast.terminal.Var
 import ast.unary.{Decrement, Doubled, Increment}
-import ast.{Expression, If, Let, Num}
+import ast.{Expression, If, Let, Num, Var}
 
 import cl.ravenhill.scum.asm.registry.-
 

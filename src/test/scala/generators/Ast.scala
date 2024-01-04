@@ -1,6 +1,8 @@
 package cl.ravenhill.scum
 package generators
 
+import cl.ravenhill.scum.ast
+import cl.ravenhill.scum.ast.Var
 import org.scalacheck.Gen
 
 extension (gen: Gen.type) {
@@ -37,12 +39,12 @@ extension (gen: Gen.type) {
     * @return
     *   A `Gen[ast.terminal.Var[String]]` that produces randomly generated `Var` expressions with string labels.
     */
-  def varExpr(environment: Environment = Environment.empty): Gen[ast.terminal.Var[String]] = for {
+  def varExpr(environment: Environment = Environment.empty): Gen[Var[String]] = for {
     name <- Gen.frequency(
       (1, Gen.stringLabel),
-      (10, if environment.isEmpty then Gen.stringLabel else Gen.oneOf(environment.keys.toSeq))
+      (10, if environment.isEmpty then Gen.stringLabel else Gen.oneOf(environment.boundNames.toSeq))
     )
-    varExpr <- Gen.const(ast.terminal.Var(name))
+    varExpr <- Gen.const(ast.Var(name))
   } yield varExpr
 
   /** Generates an instance of the `Num` class from the `ast.terminal` package.

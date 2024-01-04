@@ -1,7 +1,6 @@
 package cl.ravenhill.scum
 
-import ast.terminal.Var
-import ast.{If, Let, Num}
+import ast.{If, Let, Num, Var}
 
 import java.util.UUID
 

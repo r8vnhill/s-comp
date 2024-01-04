@@ -1,7 +1,6 @@
 package cl.ravenhill.scum
 package ast
 
-import ast.terminal.Var
 import generators.*
 
 import org.scalacheck.Gen

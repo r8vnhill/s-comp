@@ -22,3 +22,7 @@ trait Expression[A] {
 }
 
 case class Num[A](n: Int)(using override val metadata: Metadata[A]) extends Expression[A] with terminal.NumImpl(n)
+
+case class Var[A](sym: String)(using override val metadata: Metadata[A])
+    extends Expression[A]
+    with terminal.VarImpl(sym)

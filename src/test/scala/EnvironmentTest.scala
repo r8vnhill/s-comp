@@ -1,18 +1,100 @@
 package cl.ravenhill.scum
 
-import scala.util.Success
+import generators.*
+
+import org.scalacheck.Gen
+
+import scala.util.{Failure, Success}
 
 class EnvironmentTest extends AbstractScumTest {
-  "An Environment instance" - {
-    "when accessing a variable" - {
-      "should return a success with the value" in {
-        val env = Environment(Map("x" -> 1))
-        env("x") should matchPattern { case util.Success(1) => }
+  "Environment instance" - {
+    "can be created with" - {
+      "a map" in {
+        val gen = Gen.nonEmptyMap(Gen.zip(Gen.stringLabel, Gen.int()))
+        forAll(gen) { map =>
+          val env = Environment(map)
+          env.boundNames should contain theSameElementsAs map.keys
+        }
       }
 
-      "should return a failure if the variable is not defined" in {
-        val env = Environment(Map("x" -> 1))
-        env("y") should matchPattern { case util.Failure(_) => }
+      "a list of pairs" in {
+        val gen = Gen.nonEmptyListOf(Gen.zip(Gen.stringLabel, Gen.int()))
+        forAll(gen) { list =>
+          val env = Environment(list: _*)
+          env.boundNames should contain theSameElementsAs list.toMap.keys
+        }
+      }
+
+      "its companion object" - {
+        "as empty" in {
+          val env = Environment.empty
+          env.boundNames shouldBe empty
+        }
+      }
+    }
+
+    "when checking emptiness" - {
+      "is empty when created with no bindings" in {
+        val env = Environment.empty
+        env.isEmpty shouldBe true
+      }
+
+      "is not empty when created with bindings" in {
+        forAll(Gen.nonEmptyEnvironment()) { env =>
+          env.isEmpty shouldBe false
+        }
+      }
+    }
+
+    "can be extended with a new name" - {
+      "when the name is not already bound" in {
+        forAll(
+          Gen
+            .mapOf(Gen.zip(Gen.stringLabel, Gen.int()))
+            .flatMap(map => Gen.stringLabel.filterNot(map.contains).map(_ -> map))
+        ) { case (name, map) =>
+          val env      = Environment(map)
+          val extended = env + name
+          extended.boundNames should contain theSameElementsAs (map.keys.toList :+ name)
+        }
+      }
+
+      "when the name is already bound" in {
+        forAll(
+          Gen
+            .nonEmptyMap(Gen.zip(Gen.stringLabel, Gen.int()))
+            .flatMap(map => Gen.oneOf(map.keys.toList).map(_ -> map))
+        ) { case (name, map) =>
+          whenever(map.contains(name)) {
+            val env      = Environment(map)
+            val extended = env + name
+            extended.boundNames should contain theSameElementsAs map.keys.toList
+          }
+        }
+      }
+    }
+
+    "when looking up a name" - {
+      "returns the value bound to the name" in {
+        forAll(
+          Gen
+            .nonEmptyEnvironment()
+            .flatMap(env => Gen.oneOf(env.boundNames).map(_ -> env))
+        ) { case (name, env) =>
+          env(name) match
+            case Success(value) => env.bindings(name) shouldBe value
+            case _              => fail("The name should be bound")
+        }
+      }
+
+      "fails when the name is not bound" in {
+        forAll(
+          Gen
+            .environment()
+            .flatMap(env => Gen.stringLabel.filterNot(env.bindings.contains).map(_ -> env))
+        ) { case (name, env) =>
+          env(name) should matchPattern { case Failure(_: NoSuchElementException) => }
+        }
       }
     }
   }

@@ -17,6 +17,6 @@ abstract class AbstractScumTest extends AnyFreeSpec with should.Matchers with Sc
     override def toString: String = data
   }
 
-  implicit override val generatorDrivenConfig: PropertyCheckConfiguration =
+  given PropertyCheckConfiguration = // Override default property check configuration
     PropertyCheckConfiguration(minSuccessful = 1000, workers = 4)
 }

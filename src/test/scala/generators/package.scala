@@ -20,37 +20,69 @@ package object generators {
       */
     def int(min: Int = Int.MinValue, max: Int = Int.MaxValue): Gen[Int] = gen.choose(min, max)
 
-    /** Generates random string labels consisting of ASCII characters.
+    /** Generates a random string label suitable for variable names, identifiers, or labels.
       *
-      * This method creates a generator for string labels using ScalaCheck's `Gen.asciiStr`. It ensures that the
-      * generated strings are non-empty and consist only of ASCII characters, including alphanumeric characters (both
-      * uppercase and lowercase) and underscores. The generated labels conform to a pattern often used in programming
-      * contexts, such as variable names, identifiers, or labels in assembly language.
+      * This method creates a generator for string labels that are composed of a mix of uppercase and lowercase letters,
+      * numerals, and underscores. The generated strings conform to common programming language identifier rules: they
+      * must be non-empty, cannot start with a digit, and are limited to a reasonable length for readability and
+      * practicality.
       *
-      * The method applies two constraints:
-      *   1. The string must be non-empty. 2. The string must match the regular expression "^[a-zA-Z0-9_]+$", which
-      *      includes letters (both cases), digits, and underscores, starting from the beginning (^) to the end ($) of
-      *      the string.
+      * The method uses ScalaCheck's `Gen` functionality to create strings with a balanced frequency of character types.
+      * Uppercase letters are less frequent compared to lowercase ones, numerals and underscores are even less common.
+      * This distribution aims to produce realistic and varied identifiers.
       *
-      * This generator is particularly useful for property-based testing scenarios where valid identifiers or labels are
-      * required.
+      * The length of the generated string is capped at 16 characters to maintain readability and manageability in test
+      * cases.
       *
       * @return
-      *   A `Gen[String]` that produces non-empty ASCII strings matching the specified regular expression.
+      *   A `Gen[String]` that produces random string labels adhering to typical identifier rules and composition.
       */
     def stringLabel: Gen[String] = {
       for {
-        list <- Gen.resize(16, Gen.nonEmptyListOf(
-          Gen.frequency(
-            (5, Gen.alphaChar.map(_.toUpper)),
-            (25, Gen.alphaChar.map(_.toLower)),
-            (2, Gen.numChar),
-            (1, Gen.const('_'))
+        list <- Gen.resize(
+          16,
+          Gen.nonEmptyListOf(
+            Gen.frequency(
+              (5, Gen.alphaChar.map(_.toUpper)),  // Uppercase letters with lower frequency
+              (25, Gen.alphaChar.map(_.toLower)), // Lowercase letters with higher frequency
+              (2, Gen.numChar),                   // Numerals with moderate frequency
+              (1, Gen.const('_'))                 // Underscores with lower frequency
+            )
           )
-        ))
-        if list.nonEmpty
-        if !list.head.isDigit
-      } yield list.mkString
+        )
+        if list.nonEmpty      // Ensure the generated list is not empty
+        if !list.head.isDigit // First character must not be a digit
+      } yield list.mkString   // Combine the characters into a single string
     }
+
+    /** Generates a random [[Environment]] instance, possibly empty.
+      *
+      * This method creates a generator for `Environment` instances. It produces environments with a list of variable
+      * name and slot number pairs. The variable names are generated as string labels, and slot numbers are generated as
+      * integers. The pairs are then used to construct an `Environment` object.
+      *
+      * This generator can produce both empty and non-empty environments, making it suitable for a wide range of testing
+      * scenarios where different environment states are required.
+      *
+      * @return
+      *   A `Gen[Environment]` that produces `Environment` instances with randomly generated variable mappings.
+      */
+    def environment(): Gen[Environment] = for {
+      pairs <- gen.listOf(gen.zip(gen.stringLabel, gen.int()))
+    } yield Environment(pairs: _*)
+
+    /** Generates a non-empty `Environment` instance.
+      *
+      * This method creates a generator for `Environment` instances, ensuring that the generated environment is not
+      * empty. It leverages the `environment` method to generate random environments and then filters out any that are
+      * empty, guaranteeing that the resulting `Environment` contains at least one variable mapping.
+      *
+      * This generator is particularly useful in testing scenarios where an environment with at least one variable is
+      * required to adequately test functionality.
+      *
+      * @return
+      *   A `Gen[Environment]` that produces non-empty `Environment` instances.
+      */
+    def nonEmptyEnvironment(): Gen[Environment] = environment().suchThat(_.boundNames.nonEmpty)
   }
 }
