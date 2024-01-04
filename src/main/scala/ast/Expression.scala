@@ -15,7 +15,7 @@ package ast
   *   The type of the metadata associated with each expression. This allows for attaching additional information to
   *   expressions in a flexible manner.
   */
-trait Expression[A] {
+sealed trait Expression[A] {
 
   /** The metadata associated with this expression. */
   val metadata: Metadata[A]
@@ -143,6 +143,80 @@ case class Doubled[A](expr: Expression[A])(using override val metadata: Metadata
     extends Expression[A]
     with unary.DoubledImpl(expr)
 
+/** Represents an 'if' conditional expression in an abstract syntax tree (AST).
+  *
+  * The `If` case class extends the `Expression` trait, specifically to represent an 'if' conditional expression in an
+  * AST. It encapsulates three components: a predicate expression, and two expressions for the 'then' and 'else'
+  * branches of the conditional. Additionally, this class includes metadata associated with the 'if' expression. The
+  * `If` class is part of the polymorphic AST structure, where each expression can carry additional metadata of type
+  * `A`.
+  *
+  * This class also implements the `IfImpl` trait, which provides the implementation details for the 'if' conditional,
+  * including a custom `toString` method that represents the entire conditional expression.
+  *
+  * ## Usage: `If` is used to represent an 'if' conditional expression in an AST, commonly found in contexts such as
+  * interpreting, compiling, or manipulating expressions in programming or domain-specific languages (DSLs).
+  *
+  * @tparam A
+  *   The type of the metadata associated with this 'if' conditional expression.
+  * @param predicate
+  *   The expression representing the condition to be evaluated in the 'if' statement.
+  * @param thenBranch
+  *   The expression to be executed if the predicate evaluates to true.
+  * @param elseBranch
+  *   The expression to be executed if the predicate evaluates to false.
+  * @param metadata
+  *   The metadata associated with this 'if' conditional expression, provided implicitly.
+  * @example
+  *   {{{
+  * val condition = Var[Int]("condition")
+  * val thenExpr = Var[Int]("thenBranch")
+  * val elseExpr = Var[Int]("elseBranch")
+  * val ifExpr = If(condition, thenExpr, elseExpr)
+  * println(ifExpr) // prints "if (condition) then { thenBranch } else { elseBranch }"
+  *   }}}
+  */
 case class If[A](predicate: Expression[A], thenBranch: Expression[A], elseBranch: Expression[A])(using
     override val metadata: Metadata[A]
-) extends Expression[A] with IfImpl(predicate, thenBranch, elseBranch)
+) extends Expression[A]
+    with IfImpl(predicate, thenBranch, elseBranch)
+
+/** Represents a 'let' binding expression in an abstract syntax tree (AST).
+  *
+  * The `Let` case class extends the `Expression` trait to specifically represent a 'let' binding expression in an AST.
+  * This construct is common in functional programming languages and allows for binding an expression (`expr`) to a
+  * symbol (`sym`), which is then utilized within another expression (`body`). This class includes metadata associated
+  * with the 'let' binding. It forms a part of the polymorphic AST structure, where each expression can carry additional
+  * metadata of type `A`.
+  *
+  * This class also implements the `LetImpl` trait, providing the implementation details for the 'let' binding,
+  * including a custom `toString` method that represents the entire binding expression.
+  *
+  * __Usage:__ `Let` is used to represent a 'let' binding expression in an AST, commonly found in contexts such as
+  * interpreting, compiling, or manipulating expressions in programming or domain-specific languages (DSLs).
+  *
+  * @tparam A
+  *   The type of the metadata associated with this 'let' binding expression.
+  * @param sym
+  *   The symbol to which the expression is bound.
+  * @param expr
+  *   The expression to be bound to the symbol.
+  * @param body
+  *   The body expression where the symbol binding is used.
+  * @param metadata
+  *   The metadata associated with this 'let' binding expression, provided implicitly.
+  * @example
+  *   {{{
+  * val bindingExpr = Var[Int]("x")
+  * val bodyExpr = Var[Int]("y")
+  * val letExpr = Let("x", bindingExpr, bodyExpr)
+  * println(letExpr) // Outputs a string representation of the 'let' binding expression
+  *   }}}
+  */
+case class Let[A](sym: String, expr: Expression[A], body: Expression[A])(using val metadata: Metadata[A])
+    extends Expression[A]
+    with LetImpl(sym, expr, body)
+
+case class Plus[A](left: Expression[A], right: Expression[A])(using override val metadata: Metadata[A])
+    extends Expression[A]
+    with binary.PlusImpl(left, right)

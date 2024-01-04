@@ -28,7 +28,7 @@ given Metadata[String] with {
   val inputFile = scala.io.Source.fromFile(args(0))
   val input     = inputFile.mkString
   inputFile.close()
-  val ast     = Let("x", If(Num(10), Num(2), Num(0)), If(Var("x"), Num(55), Num(999)))
+  val ast     = Let("x", If(Num(10), Num(2), Num(0)), If(Var("x"), Num(input.toInt), Num(999)))
   val program = compileProgram(ast)
   println(s"; $ast")
   println(program)
