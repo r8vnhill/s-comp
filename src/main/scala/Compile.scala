@@ -1,8 +1,8 @@
 package cl.ravenhill.scum
 
 import asm.*
-import ast.unary.{Doubled, IncrementImpl}
-import ast.{Decrement, Expression, If, Let, Num, Var}
+import ast.unary.IncrementImpl
+import ast.{Decrement, *}
 
 import cl.ravenhill.scum.asm.registry.-
 
@@ -63,14 +63,13 @@ private[scum] def compileExpression[A](
     environment: Environment = Environment.empty
 ): Try[Seq[Instruction]] =
   expr match {
-    case Let(sym, expr, body) => compileLetExpression(sym, expr, body, environment)
-    case Var(sym)      => environment(sym).map(offset => Seq(Move(Rax(), Rsp - offset))) // mov rax, [rsp - <offset>]
-    case Num(n)        => Success(Seq(Move(Rax(), Constant(n))))                         // mov rax, <n>
-    case IncrementImpl(e)  => compileExpression(e, environment).map(_ :+ asm.Increment(Rax()))
-    case Decrement(e)  => compileExpression(e, environment).map(_ :+ asm.Decrement(Rax()))
-    case Doubled(e)    => compileExpression(e, environment).map(_ :+ asm.Add(Rax(), Rax()))
-    case ifExpr: If[A] => compileIfExpression(ifExpr, environment)
-    case _             => Failure[Seq[Instruction]](UnknownExpressionException(s"Unknown expression: $expr"))
+    case ast.Let(sym, expr, body) => compileLetExpression(sym, expr, body, environment)
+    case ast.Var(sym)     => environment(sym).map(offset => Seq(Move(Rax(), Rsp - offset))) // mov rax, [rsp - <offset>]
+    case ast.Num(n)       => Success(Seq(Move(Rax(), Constant(n))))                         // mov rax, <n>
+    case ast.Increment(e) => compileExpression(e, environment).map(_ :+ asm.Increment(Rax()))
+    case ast.Decrement(e) => compileExpression(e, environment).map(_ :+ asm.Decrement(Rax()))
+    case ast.Doubled(e)   => compileExpression(e, environment).map(_ :+ asm.Add(Rax(), Rax()))
+    case ifExpr: ast.If[A] => compileIfExpression(ifExpr, environment)
   }
 
 /** Compiles a 'Let' expression in an abstract syntax tree (AST) into assembly instructions.
@@ -172,12 +171,11 @@ def compileIfExpression[A](
   */
 private def annotate(expression: Expression[String]): Expression[String] = {
   expression match {
-    case Let(sym, expr, body) => Let(sym, annotate(expr), annotate(body))
-    case Var(sym)             => Var(sym)
-    case Num(n)               => Num(n)
-    case IncrementImpl(e)         => IncrementImpl(annotate(e))
-    case Decrement(e)         => Decrement(annotate(e))
-    case Doubled(e)           => Doubled(annotate(e))
-    case _                    => throw UnknownExpressionException(s"Unknown expression: $expression")
+    case ast.Let(sym, expr, body) => ast.Let(sym, annotate(expr), annotate(body))
+    case ast.Var(sym)             => ast.Var(sym)
+    case ast.Num(n)               => ast.Num(n)
+    case ast.Increment(e)         => ast.Increment(annotate(e))
+    case ast.Decrement(e)         => ast.Decrement(annotate(e))
+    case ast.Doubled(e)           => ast.Doubled(annotate(e))
   }
 }

@@ -63,7 +63,7 @@ case class Var[A](sym: String)(using override val metadata: Metadata[A])
   * The class also mixes in the `unary.DecrementImpl` trait, which provides the implementation details for the decrement
   * operation, including a custom `toString` method for the operation representation.
   *
-  * ## Usage: This class is used to represent a decrement operation in an AST, typically in the context of interpreting,
+  * __Usage__ This class is used to represent a decrement operation in an AST, typically in the context of interpreting,
   * compiling, or manipulating expressions in a programming language or a domain-specific language (DSL).
   *
   * @tparam A
@@ -83,6 +83,66 @@ case class Decrement[A](expr: ast.Expression[A])(using override val metadata: Me
     extends ast.Expression[A]
     with unary.DecrementImpl(expr)
 
+/** Represents an increment operation expression (`++expr`) in an abstract syntax tree (AST).
+  *
+  * `Increment` is a case class that extends the `ast.Expression` trait, specifically to represent an increment
+  * operation in an AST. It encapsulates an expression to be incremented, along with metadata associated with the
+  * operation. The `Increment` class is a part of the polymorphic AST structure where each expression, including
+  * operations like increment, can carry additional metadata of type `A`.
+  *
+  * The class also mixes in the `unary.IncrementImpl` trait, which provides the implementation details for the increment
+  * operation, including a custom `toString` method for the operation representation.
+  *
+  * __Usage:__ This class is used to represent an increment operation in an AST, typically in the context of
+  * interpreting, compiling, or manipulating expressions in a programming language or a domain-specific language (DSL).
+  *
+  * @tparam A
+  *   The type of the metadata associated with this increment operation expression.
+  * @param expr
+  *   The expression that is to be incremented.
+  * @param metadata
+  *   The metadata associated with this increment operation expression, provided implicitly.
+  * @example
+  *   {{{
+  * val expr = Var[Int]("x")
+  * val incrementExpr = Increment(expr)
+  * println(incrementExpr) // prints "++(x)"
+  *   }}}
+  */
 case class Increment[A](expr: ast.Expression[A])(using override val metadata: Metadata[A])
     extends ast.Expression[A]
     with unary.IncrementImpl(expr)
+
+/** Represents a 'doubled' operation expression in an abstract syntax tree (AST).
+  *
+  * The `Doubled` case class extends the `Expression` trait to specifically represent a 'doubled' operation on an
+  * expression within an AST. It encapsulates an expression that is to be doubled, and includes metadata associated with
+  * this operation. The class forms a part of the polymorphic AST structure, where each expression, including operations
+  * like 'doubled', can carry additional metadata of type `A`.
+  *
+  * Additionally, this class mixes in the `unary.DoubledImpl` trait, which provides implementation details for the
+  * 'doubled' operation, including a custom `toString` method that represents the operation.
+  *
+  * ## Usage: `Doubled` is utilized to represent a 'doubled' operation in an AST, commonly found in contexts such as
+  * interpreting, compiling, or manipulating expressions in programming or domain-specific languages (DSLs).
+  *
+  * @tparam A
+  *   The type of the metadata associated with this 'doubled' operation expression.
+  * @param expr
+  *   The expression that is to be doubled.
+  * @param metadata
+  *   The metadata associated with this 'doubled' operation expression, provided implicitly.
+  * @example
+  *   {{{
+  * val expr = Var[Int]("x")
+  * val doubledExpr = Doubled(expr)
+  * println(doubledExpr) // prints "doubled(x)"
+  *   }}}
+  */
+case class Doubled[A](expr: Expression[A])(using override val metadata: Metadata[A])
+    extends Expression[A]
+    with unary.DoubledImpl(expr)
+
+case class If[A](predicate: Expression[A], thenBranch: Expression[A], elseBranch: Expression[A])(using
+    override val metadata: Metadata[A]
+) extends Expression[A] with IfImpl(predicate, thenBranch, elseBranch)

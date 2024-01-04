@@ -41,8 +41,7 @@ When providing examples usages on the docstring comments, you should follow the 
  *
  * Extended description.
  *
- * ## Usage:
- * Usage details and scenarios.
+ * __Usage:__ Usage details and scenarios.
  *
  * @example
  * {{{

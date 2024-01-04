@@ -3,6 +3,7 @@ package ast.unary
 
 import generators.expr
 
+import cl.ravenhill.scum.ast.Doubled
 import org.scalacheck.Gen
 
 class DoubledTest extends AbstractScumTest {
