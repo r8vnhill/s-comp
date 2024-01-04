@@ -15,8 +15,10 @@ package ast
   *   The type of the metadata associated with each expression. This allows for attaching additional information to
   *   expressions in a flexible manner.
   */
-trait Expr[A] {
+trait Expression[A] {
 
   /** The metadata associated with this expression. */
   val metadata: Metadata[A]
 }
+
+case class Num[A](n: Int)(using override val metadata: Metadata[A]) extends Expression[A] with terminal.NumImpl(n)

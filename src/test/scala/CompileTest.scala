@@ -1,6 +1,6 @@
 package cl.ravenhill.scum
 
-import ass.*
+import asm.*
 import ast.unary.{Decrement, Doubled, Increment}
 import generators.{expr, num}
 import org.scalacheck.Gen

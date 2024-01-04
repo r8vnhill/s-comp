@@ -1,7 +1,7 @@
 package cl.ravenhill.scum
 package ast.binary
 
-import ast.Expr
+import ast.Expression
 
 /** Represents a plus operation in an expression with annotations.
   *
@@ -23,7 +23,7 @@ import ast.Expr
   * @tparam A
   *   The type of annotation associated with each expression in the addition operation.
   */
-case class Plus[A](left: Expr[A], right: Expr[A])(using override val metadata: Metadata[A]) extends Expr[A] {
+case class Plus[A](left: Expression[A], right: Expression[A])(using override val metadata: Metadata[A]) extends Expression[A] {
 
   /** Returns a string representation of the plus operation.
     *

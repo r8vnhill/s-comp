@@ -1,7 +1,7 @@
 package cl.ravenhill.scum
 package ast.terminal
 
-import ast.Expr
+import ast.Expression
 
 /** Represents a variable in an expression with an additional annotation.
   *
@@ -18,7 +18,7 @@ import ast.Expr
   * @tparam A
   *   The type of annotation associated with this variable instance.
   */
-case class Var[A](sym: String)(using override val metadata: Metadata[A]) extends Expr[A] {
+case class Var[A](sym: String)(using override val metadata: Metadata[A]) extends Expression[A] {
 
   /** Returns the string representation of the variable name.
     *

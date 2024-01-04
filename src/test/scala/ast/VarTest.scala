@@ -2,18 +2,21 @@ package cl.ravenhill.scum
 package ast
 
 import ast.terminal.Var
+import generators.*
+
+import org.scalacheck.Gen
 
 class VarTest extends AbstractScumTest {
 
   "A Var expression" - {
     "should have a sym property that is set to the symbol passed in the constructor" in {
-      forAll { (sym: String) =>
+      forAll(Gen.stringLabel) { sym =>
         Var(sym).sym should be(sym)
       }
     }
 
     "can be converted to prefix notation" in {
-      forAll { (sym: String) =>
+      forAll(Gen.stringLabel) { sym =>
         Var(sym).toString should be(sym)
       }
     }

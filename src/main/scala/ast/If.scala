@@ -24,8 +24,8 @@ package ast
   * @tparam A
   *   The type of annotation associated with this instance of the 'if-else' expression.
   */
-case class If[A](cond: Expr[A], thenBranch: Expr[A], elseBranch: Expr[A])(using override val metadata: Metadata[A])
-    extends Expr[A] {
+case class If[A](cond: Expression[A], thenBranch: Expression[A], elseBranch: Expression[A])(using override val metadata: Metadata[A])
+    extends Expression[A] {
 
   /** Returns a string representation of the 'if-else' construct.
     *

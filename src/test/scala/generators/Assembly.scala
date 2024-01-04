@@ -1,7 +1,7 @@
 package cl.ravenhill.scum
 package generators
 
-import ass.{Arg, Compare, Constant, Move}
+import asm.{Arg, Compare, Constant, Move}
 
 import org.scalacheck.Gen
 
@@ -20,7 +20,7 @@ extension (gen: Gen.type) {
     */
   def constant(value: Gen[Int] = gen.int()): Gen[Constant] = for {
     v <- value
-    const <- gen.const(ass.Constant(v))
+    const <- gen.const(asm.Constant(v))
   } yield const
 
   /** Generates a `Mov` instruction with randomly selected arguments.
@@ -80,7 +80,7 @@ extension (gen: Gen.type) {
     * @return
     *   A `Gen[Register]` that produces one of the predefined `Register` instances (`Rax`, `Eax`, `Rsp`).
     */
-  def register: Gen[ass.Register] = gen.oneOf(ass.Rax(), ass.Eax(), ass.Rsp())
+  def register: Gen[asm.Register] = gen.oneOf(asm.Rax(), asm.Eax(), asm.Rsp())
 
   /** Generates a general assembly language argument.
     *
@@ -90,7 +90,7 @@ extension (gen: Gen.type) {
     * @return
     *   A `Gen[Arg]` that produces either `Const` or `Reg` instances, depending on the random choice.
     */
-  def arg: Gen[ass.Arg] = gen.oneOf(gen.constant(), gen.register)
+  def arg: Gen[asm.Arg] = gen.oneOf(gen.constant(), gen.register)
 
   /** Generates a random assembly language instruction.
     *
@@ -106,5 +106,5 @@ extension (gen: Gen.type) {
     *   A `Gen[Instruction]` that produces `Instruction` instances, specifically `Mov` instructions with randomly
     *   generated arguments.
     */
-  def instruction: Gen[ass.Instruction] = gen.oneOf(gen.move(), gen.compare())
+  def instruction: Gen[asm.Instruction] = gen.oneOf(gen.move(), gen.compare())
 }

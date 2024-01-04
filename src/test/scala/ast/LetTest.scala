@@ -8,7 +8,7 @@ import org.scalacheck.Gen
 class LetTest extends AbstractScumTest {
   "A Let expression" - {
     "should store the symbol passed to the constructor" in {
-      var collected = Map.empty[Expr[String], Int]
+      var collected = Map.empty[Expression[String], Int]
       forAll(Gen.stringLabel, Gen.expr(), Gen.expr()) { (sym, e1, e2) =>
         collected = collected.get(e1) match {
           case Some(count) => collected + (e1 -> (count + 1))

@@ -1,7 +1,7 @@
 package cl.ravenhill.scum
-package ass
+package asm
 
-import ass.registry.RegisterImpl
+import asm.registry.RegisterImpl
 
 /** Represents an argument in assembly language instructions.
   *

@@ -19,8 +19,8 @@ package ast
   * @tparam A
   *   The type of annotation associated with this instance of the 'let' expression.
   */
-case class Let[A](sym: String, expr: Expr[A], body: Expr[A])(using val metadata: Metadata[A])
-    extends Expr[A] {
+case class Let[A](sym: String, expr: Expression[A], body: Expression[A])(using val metadata: Metadata[A])
+    extends Expression[A] {
 
   /** Returns a string representation of the 'let' expression in prefix notation.
     *

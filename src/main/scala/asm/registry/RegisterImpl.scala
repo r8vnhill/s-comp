@@ -1,6 +1,6 @@
 
 package cl.ravenhill.scum
-package ass.registry
+package asm.registry
 
 /** Trait representing a CPU register implementation in assembly language.
  *

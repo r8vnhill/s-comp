@@ -39,10 +39,18 @@ package object generators {
       *   A `Gen[String]` that produces non-empty ASCII strings matching the specified regular expression.
       */
     def stringLabel: Gen[String] = {
-      Gen.asciiStr
-        .map(_.replaceAll("[^a-zA-Z0-9_]", ""))
-        .suchThat(_.nonEmpty)
-        .suchThat(!_.head.isDigit)
+      for {
+        list <- Gen.resize(16, Gen.nonEmptyListOf(
+          Gen.frequency(
+            (5, Gen.alphaChar.map(_.toUpper)),
+            (25, Gen.alphaChar.map(_.toLower)),
+            (2, Gen.numChar),
+            (1, Gen.const('_'))
+          )
+        ))
+        if list.nonEmpty
+        if !list.head.isDigit
+      } yield list.mkString
     }
   }
 }

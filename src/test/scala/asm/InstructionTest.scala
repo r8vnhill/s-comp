@@ -1,6 +1,6 @@
 
 package cl.ravenhill.scum
-package ass
+package asm
 
 import org.scalacheck.Gen
 import generators.*

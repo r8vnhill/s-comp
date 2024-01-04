@@ -2,7 +2,7 @@
 package cl.ravenhill.scum
 package ast.terminal
 
-import ast.terminal.Num
+import cl.ravenhill.scum.ast.Num
 
 class NumTest extends AbstractScumTest {
   "A number" - {

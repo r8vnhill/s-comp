@@ -1,11 +1,11 @@
 package cl.ravenhill.scum
 
-import ass.*
-import ast.terminal.{Num, Var}
+import asm.*
+import ast.terminal.Var
 import ast.unary.{Decrement, Doubled, Increment}
-import ast.{Expr, If, Let}
+import ast.{Expression, If, Let, Num}
 
-import cl.ravenhill.scum.ass.registry.-
+import cl.ravenhill.scum.asm.registry.-
 
 import scala.util.{Failure, Success, Try}
 
@@ -22,7 +22,7 @@ import scala.util.{Failure, Success, Try}
   * @return
   *   A string representing the assembly language code for the compiled program.
   */
-def compileProgram[A](program: ast.Expr[A]): String = {
+def compileProgram[A](program: ast.Expression[A]): String = {
   val instructions = compileExpression(program, Environment.empty)
   val asmString = instructions match {
     case Success(instructions) =>
@@ -38,7 +38,7 @@ def compileProgram[A](program: ast.Expr[A]): String = {
     """section .text
       |global our_code_starts_here
       |our_code_starts_here:""".stripMargin
-  val suffix = s"  $Ret"
+  val suffix = s"  $Return"
   s"""$prelude
      |$asmString
      |$suffix""".stripMargin
@@ -60,18 +60,18 @@ def compileProgram[A](program: ast.Expr[A]): String = {
   *   A sequence of instructions representing the compiled form of the expression.
   */
 private[scum] def compileExpression[A](
-    expr: Expr[A],
+    expr: Expression[A],
     environment: Environment = Environment.empty
 ): Try[Seq[Instruction]] =
   expr match {
     case Let(sym, expr, body) => compileLetExpression(sym, expr, body, environment)
-    case Var(sym)             => Success(Seq(Move(Rax(), Rsp - environment(sym).get))) // mov rax, [rsp - <offset>]
-    case Num(n)               => Success(Seq(Move(Rax(), Constant(n))))                  // mov rax, <n>
-    case Increment(e)         => compileExpression(e, environment).map(_ :+ ass.Increment(Rax()))
-    case Decrement(e)         => compileExpression(e, environment).map(_ :+ ass.Decrement(Rax()))
-    case Doubled(e)           => compileExpression(e, environment).map(_ :+ ass.Add(Rax(), Rax()))
-    case ifExpr: If[A]        => compileIfExpression(ifExpr, environment)
-    case _                    => Failure[Seq[Instruction]](UnknownExpressionException(s"Unknown expression: $expr"))
+    case Var(sym)      => environment(sym).map(offset => Seq(Move(Rax(), Rsp - offset))) // mov rax, [rsp - <offset>]
+    case Num(n)        => Success(Seq(Move(Rax(), Constant(n))))                         // mov rax, <n>
+    case Increment(e)  => compileExpression(e, environment).map(_ :+ asm.Increment(Rax()))
+    case Decrement(e)  => compileExpression(e, environment).map(_ :+ asm.Decrement(Rax()))
+    case Doubled(e)    => compileExpression(e, environment).map(_ :+ asm.Add(Rax(), Rax()))
+    case ifExpr: If[A] => compileIfExpression(ifExpr, environment)
+    case _             => Failure[Seq[Instruction]](UnknownExpressionException(s"Unknown expression: $expr"))
   }
 
 /** Compiles a 'Let' expression in an abstract syntax tree (AST) into assembly instructions.
@@ -101,11 +101,11 @@ private[scum] def compileExpression[A](
   */
 private def compileLetExpression[A](
     sym: String,
-    bindingExpr: Expr[A],
-    bodyExpr: Expr[A],
+    bindingExpr: Expression[A],
+    bodyExpr: Expression[A],
     environment: Environment
 ): Try[Seq[Instruction]] = {
-  val extendedEnv     = environment + sym                     // Ensure sym exists in extendedEnv
+  val extendedEnv     = environment + sym                       // Ensure sym exists in extendedEnv
   val compiledBinding = compileExpression(bindingExpr, environment)
   val moveToStack     = Move(Rsp - extendedEnv(sym).get, Rax()) // mov [rsp - <offset>], rax
   val compiledBody    = compileExpression(bodyExpr, extendedEnv)
@@ -152,16 +152,16 @@ def compileIfExpression[A](
     elseBranch <- compileExpression(elseExpr, environment)
   } yield predicate ++
     Seq(
-      ass.Label(ifLabel),
-      ass.Compare(Rax(), Constant(0)), // cmp rax, 0
-      ass.JumpIfEqual(elseLabel)       // jmp <else_label>
+      asm.Label(ifLabel),
+      asm.Compare(Rax(), Constant(0)), // cmp rax, 0
+      asm.JumpIfEqual(elseLabel)       // jmp <else_label>
     ) ++ thenBranch ++
     Seq(
-      ass.Jump(endLabel),  // jmp <end_label>
-      ass.Label(elseLabel) // <else_label>:
+      asm.Jump(endLabel),  // jmp <end_label>
+      asm.Label(elseLabel) // <else_label>:
     ) ++
     elseBranch ++
-    Seq(ass.Label(endLabel)) // <end_label>:
+    Seq(asm.Label(endLabel)) // <end_label>:
 }
 
 /** Annotates an expression with additional metadata.
@@ -171,7 +171,7 @@ def compileIfExpression[A](
   * @return
   *   The annotated expression.
   */
-private def annotate(expression: Expr[String]): Expr[String] = {
+private def annotate(expression: Expression[String]): Expression[String] = {
   expression match {
     case Let(sym, expr, body) => Let(sym, annotate(expr), annotate(body))
     case Var(sym)             => Var(sym)

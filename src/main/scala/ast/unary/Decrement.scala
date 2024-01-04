@@ -16,7 +16,7 @@ package ast.unary
   * @tparam A
   *   The type of annotation associated with this instance of the decrement operation.
   */
-case class Decrement[A](expr: ast.Expr[A])(using override val metadata: Metadata[A]) extends ast.Expr[A] {
+case class Decrement[A](expr: ast.Expression[A])(using override val metadata: Metadata[A]) extends ast.Expression[A] {
 
   /** Returns the string representation of the decrement operation.
     *

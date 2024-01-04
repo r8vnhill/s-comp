@@ -1,5 +1,5 @@
 package cl.ravenhill.scum
-package ass.impl
+package asm.impl
 
 /** Represents a constant value in assembly language.
   *

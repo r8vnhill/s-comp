@@ -1,7 +1,7 @@
 package cl.ravenhill.scum
 package ast.unary
 
-import ast.Expr
+import ast.Expression
 
 /** Represents a doubling operation in an expression with an additional annotation.
   *
@@ -19,7 +19,7 @@ import ast.Expr
   * @tparam A
   *   The type of annotation associated with this instance of the doubling operation.
   */
-case class Doubled[A](expr: Expr[A])(using override val metadata: Metadata[A]) extends Expr[A] {
+case class Doubled[A](expr: Expression[A])(using override val metadata: Metadata[A]) extends Expression[A] {
 
   /** Returns the string representation of the doubling operation.
     *
