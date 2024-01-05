@@ -1,8 +1,7 @@
 package cl.ravenhill.scum
 
 import asm.*
-import ast.unary.IncrementImpl
-import ast.{Decrement, *}
+import ast.*
 
 import cl.ravenhill.scum.asm.registry.-
 
@@ -47,9 +46,9 @@ def compileProgram[A](program: ast.Expression[A]): String = {
   *
   * This function takes an expression from the abstract syntax tree (AST) and an environment mapping variable names to
   * their respective stack slots. It recursively compiles the expression into a sequence of low-level instructions.
-  * Supported expressions include variable declarations ([[Let]]), variable references ([[Var]]), numeric literals
-  * ([[Num]]), and unary operations like increment ([[IncrementImpl]]), decrement ([[Decrement]]), and doubling
-  * ([[Doubled]]).
+  * Supported expressions include variable declarations ([[ast.Let]]), variable references ([[ast.Var]]), numeric
+  * literals ([[ast.Num]]), unary operations like increment ([[ast.Increment]]), decrement ([[ast.Decrement]]), doubling
+  * ([[ast.Doubled]]), binary operations ([[ast.BinaryOperation]]), and conditional expressions ([[ast.If]]).
   *
   * @param expr
   *   The AST expression to compile.
@@ -57,17 +56,20 @@ def compileProgram[A](program: ast.Expression[A]): String = {
   *   The environment mapping variable names to stack slots.
   * @return
   *   A sequence of instructions representing the compiled form of the expression.
+  * @tparam A
+  *   The type of metadata associated with the AST expression.
   */
 private[scum] def compileExpression[A](
     expr: Expression[A],
     environment: Environment = Environment.empty
 ): Try[Seq[Instruction]] =
   expr match {
-    case ast.Let(sym, expr, body) => compileLetExpression(sym, expr, body, environment)
     case ast.Var(sym) => environment(sym).map(offset => Seq(Move(Rax(), Rsp - offset))) // mov rax, [rsp - <offset>]
     case ast.Num(n)   => Success(Seq(Move(Rax(), Constant(n))))                         // mov rax, <n>
-    case e: ast.UnaryOperation[A] => compileUnaryOperation(e, environment)
-    case ifExpr: ast.If[A]        => compileIfExpression(ifExpr, environment)
+    case e: ast.UnaryOperation[A]  => compileUnaryOperation(e, environment)
+    case e: ast.BinaryOperation[A] => compileBinaryOperation(e, environment)
+    case ast.Let(sym, expr, body)  => compileLetExpression(sym, expr, body, environment)
+    case ifExpr: ast.If[A]         => compileIfExpression(ifExpr, environment)
   }
 
 /** Compiles a unary operation expression into a sequence of machine instructions.
@@ -92,6 +94,13 @@ private def compileUnaryOperation(value: UnaryOperation[_], environment: Environ
     case ast.Increment(e) => compileExpression(e, environment).map(_ :+ asm.Increment(Rax()))
     case ast.Decrement(e) => compileExpression(e, environment).map(_ :+ asm.Decrement(Rax()))
     case ast.Doubled(e)   => compileExpression(e, environment).map(_ :+ asm.Add(Rax(), Rax()))
+  }
+}
+
+private def compileBinaryOperation(value: BinaryOperation[_], environment: Environment): Try[Seq[Instruction]] = {
+  value match {
+    case ast.Plus(e1, e2) => ???
+    case ast.Minus(e1, e2) => ???
   }
 }
 

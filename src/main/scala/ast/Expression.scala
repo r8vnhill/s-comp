@@ -133,6 +133,71 @@ case class Doubled[A](expr: Expression[A])(using override val metadata: Metadata
     extends UnaryOperation[A]
     with unary.DoubledImpl(expr)
 
+/** Represents the base trait for binary operations in an abstract syntax tree (AST).
+  *
+  * The `BinaryOperation` sealed trait serves as a foundational component in an AST for representing binary operations.
+  * Binary operations are operations that operate on two operands, namely `left` and `right`. This trait extends the
+  * `Expression` trait, emphasizing that binary operations themselves are expressions. By defining a common structure
+  * for all binary operations through its two components (left and right expressions), it allows for a consistent and
+  * extensible way to represent various binary operations such as addition, subtraction, multiplication, or division.
+  *
+  * @tparam A
+  *   The type of the metadata associated with the binary operation expression.
+  * @param left
+  *   The left-hand side expression of the binary operation.
+  * @param right
+  *   The right-hand side expression of the binary operation.
+  */
+sealed trait BinaryOperation[A](left: Expression[A], right: Expression[A]) extends Expression[A]
+
+/** Represents a 'plus' (addition) operation expression in an abstract syntax tree (AST).
+  *
+  * The `Plus` case class extends the `BinaryOperation` trait to specifically represent an addition operation in an AST.
+  * As a binary operation, it encapsulates two expressions (`left` and `right`) that are the operands of the addition.
+  * This class is a part of the polymorphic AST structure, where each expression, including binary operations like
+  * addition, can carry additional metadata of type `A`.
+  *
+  * The class also implements the `binary.PlusImpl` trait, providing implementation details for the addition operation.
+  * This helps to maintain separation between the representation of the operation in the AST and the specific logic for
+  * executing or processing the addition.
+  *
+  * @tparam A
+  *   The type of the metadata associated with this addition operation expression.
+  * @param left
+  *   The left-hand side expression of the addition.
+  * @param right
+  *   The right-hand side expression of the addition.
+  * @param metadata
+  *   The metadata associated with this addition operation expression, provided implicitly.
+  */
+case class Plus[A](left: Expression[A], right: Expression[A])(using override val metadata: Metadata[A])
+    extends BinaryOperation[A](left, right)
+    with binary.PlusImpl(left, right)
+
+/** Represents a 'minus' (subtraction) operation expression in an abstract syntax tree (AST).
+  *
+  * The `Minus` case class extends the `BinaryOperation` trait, specifically to represent a subtraction operation in an
+  * AST. As a binary operation, it encapsulates two expressions (`left` and `right`) that are the operands of the
+  * subtraction. This class is a part of the polymorphic AST structure, where each expression, including binary
+  * operations like subtraction, can carry additional metadata of type `A`.
+  *
+  * The class also implements the `binary.MinusImpl` trait, providing implementation details for the subtraction
+  * operation. This helps to maintain separation between the representation of the operation in the AST and the specific
+  * logic for executing or processing the subtraction.
+  *
+  * @tparam A
+  *   The type of the metadata associated with this subtraction operation expression.
+  * @param left
+  *   The left-hand side expression of the subtraction.
+  * @param right
+  *   The right-hand side expression of the subtraction.
+  * @param metadata
+  *   The metadata associated with this subtraction operation expression, provided implicitly.
+  */
+case class Minus[A](left: Expression[A], right: Expression[A])(using override val metadata: Metadata[A])
+    extends BinaryOperation[A](left, right)
+    with binary.MinusImpl(left, right)
+
 /** Represents an 'if' conditional expression in an abstract syntax tree (AST).
   *
   * The `If` case class extends the `Expression` trait, specifically to represent an 'if' conditional expression in an
@@ -143,7 +208,7 @@ case class Doubled[A](expr: Expression[A])(using override val metadata: Metadata
   *
   * This class also implements the `IfImpl` trait, which provides the implementation details for the 'if' conditional,
   * including a custom `toString` method that represents the entire conditional expression.
- * 
+  *
   * @tparam A
   *   The type of the metadata associated with this 'if' conditional expression.
   * @param predicate
@@ -185,7 +250,3 @@ case class If[A](predicate: Expression[A], thenBranch: Expression[A], elseBranch
 case class Let[A](sym: String, expr: Expression[A], body: Expression[A])(using val metadata: Metadata[A])
     extends Expression[A]
     with LetImpl(sym, expr, body)
-
-case class Plus[A](left: Expression[A], right: Expression[A])(using override val metadata: Metadata[A])
-    extends Expression[A]
-    with binary.PlusImpl(left, right)
