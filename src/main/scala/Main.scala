@@ -1,6 +1,6 @@
 package cl.ravenhill.scum
 
-import ast.{If, Let, Num, Var}
+import ast.{If, Let, NumericLiteral, IdLiteral}
 
 import java.util.UUID
 
@@ -28,7 +28,7 @@ given Metadata[String] with {
   val inputFile = scala.io.Source.fromFile(args(0))
   val input     = inputFile.mkString
   inputFile.close()
-  val ast     = Let("x", If(Num(10), Num(2), Num(0)), If(Var("x"), Num(input.toInt), Num(999)))
+  val ast     = Let("x", If(NumericLiteral(10), NumericLiteral(2), NumericLiteral(0)), If(IdLiteral("x"), NumericLiteral(input.toInt), NumericLiteral(999)))
   val program = compiler.compileProgram(ast)
   println(s"; $ast")
   println(program)

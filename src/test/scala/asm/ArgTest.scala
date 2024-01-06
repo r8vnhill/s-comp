@@ -6,7 +6,7 @@ import generators.*
 
 import org.scalacheck.Gen
 
-class ArgTest extends AbstractScumTest {
+class ArgTest extends AbstractScumTest with CommonGenerators {
 
   "A Constant" - {
     "should have a 'value' property that is set accordingly to the constructor" in {
@@ -60,7 +60,7 @@ class ArgTest extends AbstractScumTest {
         }
 
         "the offset is non-zero" in {
-          forAll(Gen.int()) { offset ⇒
+          forAll(generateInt()) { offset ⇒
             whenever(offset != 0) {
               constructor(offset).toString should (
                 fullyMatch regex ("""\[([a-zA-Z]+) \+ 8 \* (-?\d+)]""" withGroups (name, offset.toString))

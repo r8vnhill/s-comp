@@ -34,24 +34,30 @@ sealed trait Expression[A] {
   * @param metadata
   *   The metadata associated with this numeric literal expression, provided implicitly.
   */
-case class Num[A](n: Int)(using override val metadata: Metadata[A]) extends Expression[A] with terminal.NumImpl(n)
+case class NumericLiteral[A](n: Int)(using override val metadata: Metadata[A])
+    extends Expression[A]
+    with terminal.NumericLiteral(n)
 
-/** Represents a variable expression in an abstract syntax tree (AST).
+/** Represents an identifier literal in an abstract syntax tree (AST).
   *
-  * This case class extends the `Expression` trait, encapsulating a variable. It is part of the polymorphic AST
-  * structure where each expression can carry additional metadata of type `A`. The `Var` class specifically represents
-  * variable expressions in the AST, identified by a symbol.
+  * The `IdLiteral` case class extends the `Expression` trait to specifically represent an identifier literal in an AST.
+  * This class is used for representing elements that are identified by a symbolic name or label, such as variables,
+  * functions, or other named entities in a program's source code. It encapsulates a string symbol (`sym`) representing
+  * the identifier and includes metadata associated with this identifier.
+  *
+  * The class also mixes in the `terminal.IdLiteral` trait, which provides a custom `toString` method to output the
+  * identifier's symbol.
   *
   * @tparam A
-  *   The type of the metadata associated with this variable expression.
+  *   The type of the metadata associated with this identifier literal.
   * @param sym
-  *   The symbol representing the variable.
+  *   The string symbol representing the identifier.
   * @param metadata
-  *   The metadata associated with this variable expression, provided implicitly.
+  *   The metadata associated with this identifier literal, provided implicitly.
   */
-case class Var[A](sym: String)(using override val metadata: Metadata[A])
+case class IdLiteral[A](sym: String)(using override val metadata: Metadata[A])
     extends Expression[A]
-    with terminal.VarImpl(sym)
+    with terminal.IdLiteral(sym)
 
 /** Represents the base trait for unary operations in an abstract syntax tree (AST).
   *

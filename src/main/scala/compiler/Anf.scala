@@ -16,7 +16,7 @@ import ast.*
   *   `true` if the expression is an immediate expression (`Num` or `Var`), otherwise `false`.
   */
 private def isImmediate[A](expression: Expression[A]): Boolean = expression match {
-  case Num(_) | Var(_) => true
+  case NumericLiteral(_) | IdLiteral(_) => true
   case _               => false
 }
 
@@ -85,18 +85,18 @@ private[compiler] def isAnf[A](expression: Expression[A]): Boolean = expression 
   */
 private[compiler] def toAnf[A](expression: Expression[A])(using annotation: Metadata[A]): Expression[A] =
   expression match {
-    case Num(_) | Var(_) => expression
+    case NumericLiteral(_) | IdLiteral(_) => expression
     case e: UnaryOperation[A] =>
       val (_, operandContext) = extractAnfContext(e.expr)
       val temp                = s"temp_${e.metadata}"
       val newContext          = operandContext + (temp -> e)
-      createContextExpression(newContext, Var[A](temp))
+      createContextExpression(newContext, IdLiteral[A](temp))
     case e: BinaryOperation[A] =>
       val (_, leftContext)  = extractAnfContext(e.left)
       val (_, rightContext) = extractAnfContext(e.right)
       val temp              = s"temp_${e.metadata}"
       val newContext        = leftContext ++ rightContext + (temp -> e)
-      createContextExpression(newContext, Var[A](temp))
+      createContextExpression(newContext, IdLiteral[A](temp))
     case Let(sym, expr, body) =>
       val (anfExpr, context) = extractAnfContext(expr)
       Let(sym, anfExpr, toAnf(createContextExpression(context, body)))
@@ -108,7 +108,7 @@ private[compiler] def toAnf[A](expression: Expression[A])(using annotation: Meta
       val newIf =
         If(predicate, createContextExpression(thenContext, thenAnf), createContextExpression(elseContext, elseAnf))
       if (newContext.isEmpty) newIf
-      else Let(temp, newIf, Var[A](temp))
+      else Let(temp, newIf, IdLiteral[A](temp))
   }
 
 /** Extracts the Administrative Normal Form (ANF) context from an expression.

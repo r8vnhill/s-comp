@@ -48,8 +48,8 @@ def compileProgram[A](program: ast.Expression[A]): String = {
   *
   * This function takes an expression from the abstract syntax tree (AST) and an environment mapping variable names to
   * their respective stack slots. It recursively compiles the expression into a sequence of low-level instructions.
-  * Supported expressions include variable declarations ([[ast.Let]]), variable references ([[ast.Var]]), numeric
-  * literals ([[ast.Num]]), unary operations like increment ([[ast.Increment]]), decrement ([[ast.Decrement]]), doubling
+  * Supported expressions include variable declarations ([[ast.Let]]), variable references ([[ast.IdLiteral]]), numeric
+  * literals ([[ast.NumericLiteral]]), unary operations like increment ([[ast.Increment]]), decrement ([[ast.Decrement]]), doubling
   * ([[ast.Doubled]]), binary operations ([[ast.BinaryOperation]]), and conditional expressions ([[ast.If]]).
   *
   * @param expr
@@ -68,8 +68,8 @@ private[compiler] def compileExpression[A](
   val minNum = Long.MinValue / 2
   val maxNum = Long.MaxValue / 2
   expr match {
-    case ast.Var(sym) => environment(sym).map(offset => Seq(Move(Rax(), Rsp - offset))) // mov rax, [rsp - <offset>]
-    case ast.Num(n) =>
+    case ast.IdLiteral(sym) => environment(sym).map(offset => Seq(Move(Rax(), Rsp - offset))) // mov rax, [rsp - <offset>]
+    case ast.NumericLiteral(n) =>
       n match {
         // (!) Check for overflow/underflow statically, this does not prevent runtime errors
         case n if n < minNum => Failure(NumberUnderflowException(n, minNum))

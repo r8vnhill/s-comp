@@ -14,7 +14,7 @@ package ast.terminal
   * @param n
   *   The integer value of the numeric literal.
   */
-trait NumImpl(n: Int) {
+private[ast] trait NumericLiteral(n: Int) {
 
   /** Returns a string representation of the numeric literal.
     *

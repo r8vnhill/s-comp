@@ -1,16 +1,16 @@
 package cl.ravenhill.scum
 package ast.unary
 
-import generators.expr
+import generators.AstGenerators
 
-import cl.ravenhill.scum.ast.Doubled
+import ast.Doubled
 import org.scalacheck.Gen
 
-class DoubledTest extends AbstractScumTest {
+class DoubledTest extends AbstractScumTest with AstGenerators {
 
   "A Doubled expression" - {
     "should store the sub-expression passed to the constructor" in {
-      forAll(Gen.expr()) { e =>
+      forAll(generateExpression()) { e =>
         Doubled(e).expr should be(e)
       }
     }

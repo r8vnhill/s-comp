@@ -1,11 +1,5 @@
 package cl.ravenhill.scum
 
-import asm.*
-import ast.unary.IncrementImpl
-import generators.{expr, num}
-import cl.ravenhill.scum.ast.{Decrement, Doubled}
-import org.scalacheck.Gen
-
 class CompileTest extends AbstractScumTest {
 //  "Compiling a numeric expression" - {
 //    "should return a list containing the expression" in {
@@ -19,7 +13,7 @@ class CompileTest extends AbstractScumTest {
 //
 //  "Compiling an increment expression" - {
 //    "compiles the subexpression and appends an increment to the list" in {
-//      forAll(Gen.expr()) { e =>
+//      forAll(generateExpression()) { e =>
 //        val result = compileExpression(Increment(e))
 //        result should have size(compileExpression(e).size + 1)
 //        result.last should be(Inc(Reg(Rax)))
@@ -29,7 +23,7 @@ class CompileTest extends AbstractScumTest {
 //
 //  "Compiling a decrement expression" - {
 //    "compiles the subexpression and appends a decrement to the list" in {
-//      forAll(Gen.expr()) { e =>
+//      forAll(generateExpression()) { e =>
 //        val result = compileExpression(Decrement(e))
 //        result should have size(compileExpression(e).size + 1)
 //        result.last should be(Dec(Reg(Rax)))
@@ -39,7 +33,7 @@ class CompileTest extends AbstractScumTest {
 //
 //  "Compiling a doubled expression" - {
 //    "compiles the subexpression and appends an addition to the list" in {
-//      forAll(Gen.expr()) { e =>
+//      forAll(generateExpression()) { e =>
 //        val result = compileExpression(Doubled(e))
 //        result should have size (compileExpression(e).size + 1)
 //        result.last should be(Add(Reg(Rax), Reg(Rax)))
@@ -49,7 +43,7 @@ class CompileTest extends AbstractScumTest {
 //
 //  "Compiling a program" - {
 //    "should return the expected assembly" in {
-//      forAll(Gen.expr()) { i =>
+//      forAll(generateExpression()) { i =>
 //        val result = compileProgram(i)
 //        result.split(System.lineSeparator) should have size (4 + compileExpression(i).size)
 //        result should (startWith("""section .text
