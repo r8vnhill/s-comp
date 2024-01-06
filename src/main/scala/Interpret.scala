@@ -31,7 +31,7 @@ import scala.util.{Success, Try}
   * println(result) // Outputs: Success(3)
   *   }}}
   */
-def interpret[A](expression: ast.Expression[A], environment: Map[String, Int]): Try[Int] = {
+def interpret[A](expression: ast.Expression[A], environment: Map[String, Long]): Try[Long] = {
   expression match {
     case ast.Num(value)   => Success(value)
     case ast.Var(sym)     => Try(environment(sym))

@@ -5,6 +5,7 @@ import asm.*
 import ast.*
 
 import cl.ravenhill.scum.asm.registry.-
+import cl.ravenhill.scum.exceptions.{NumberOverflowException, NumberUnderflowException}
 
 import scala.util.{Failure, Success, Try}
 
@@ -63,15 +64,24 @@ def compileProgram[A](program: ast.Expression[A]): String = {
 private[compiler] def compileExpression[A](
     expr: Expression[A],
     environment: Environment = Environment.empty
-): Try[Seq[Instruction]] =
+): Try[Seq[Instruction]] = {
+  val minNum = Long.MinValue / 2
+  val maxNum = Long.MaxValue / 2
   expr match {
     case ast.Var(sym) => environment(sym).map(offset => Seq(Move(Rax(), Rsp - offset))) // mov rax, [rsp - <offset>]
-    case ast.Num(n)   => Success(Seq(Move(Rax(), Constant(n))))                         // mov rax, <n>
+    case ast.Num(n) =>
+      n match {
+        // (!) Check for overflow/underflow statically, this does not prevent runtime errors
+        case n if n < minNum => Failure(NumberUnderflowException(n, minNum))
+        case n if n > maxNum => Failure(NumberOverflowException(n, maxNum))
+        case _               => Success(Seq(Move(Rax(), Constant(n << 1)))) // mov rax, <n>
+      }
     case e: ast.UnaryOperation[A]  => compileUnaryOperation(e, environment)
     case e: ast.BinaryOperation[A] => compileBinaryOperation(e, environment)
     case ast.Let(sym, expr, body)  => compileLetExpression(sym, expr, body, environment)
     case ifExpr: ast.If[A]         => compileIfExpression(ifExpr, environment)
   }
+}
 
 /** Compiles a unary operation expression into a sequence of machine instructions.
   *
