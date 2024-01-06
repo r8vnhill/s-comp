@@ -11,16 +11,38 @@ import org.scalacheck.Gen
   */
 trait CommonGenerators {
 
-  /** Generates a random integer within a specified range.
+  /** Generates a random long value within a specified range.
+    *
+    * This method creates a generator for Long values, allowing the specification of minimum and maximum bounds. It is
+    * designed to produce a uniformly distributed range of long values within the given bounds, inclusive. This is
+    * particularly useful in property-based testing where you need to test functionalities with a wide variety of long
+    * integer inputs.
     *
     * @param min
-    *   The minimum value of the range (inclusive). Defaults to `Int.MinValue`.
+    *   The minimum value (inclusive) of the range. Defaults to `Long.MinValue`.
     * @param max
-    *   The maximum value of the range (inclusive). Defaults to `Int.MaxValue`.
+    *   The maximum value (inclusive) of the range. Defaults to `Long.MaxValue`.
     * @return
-    *   A generator for integers within the specified range.
+    *   A generator that produces random Long values within the specified range.
     */
-  def generateLong(min: Long = Long.MinValue, max: Long = Long.MaxValue): Gen[Int] = Gen.long
+  def generateLong(min: Long = Long.MinValue, max: Long = Long.MaxValue): Gen[Long] =
+    Gen.long.map(value => min + (value.abs % (max - min + 1)))
+
+  /** Generates a random integer value within a specified range.
+    *
+    * This method creates a generator for Int values that are uniformly distributed within the specified range, defined
+    * by the `min` and `max` parameters. The range includes both the minimum and maximum values. This generator is
+    * particularly useful in property-based testing where diverse integer inputs are required to thoroughly test
+    * numerical computations, boundary conditions, and other functionalities that operate on integers.
+    *
+    * @param min
+    *   The minimum value (inclusive) of the range. Defaults to `Int.MinValue`.
+    * @param max
+    *   The maximum value (inclusive) of the range. Defaults to `Int.MaxValue`.
+    * @return
+    *   A generator that produces random Int values within the specified range.
+    */
+  def generateInt(min: Int = Int.MinValue, max: Int = Int.MaxValue): Gen[Int] = Gen.choose(min, max)
 
   /** Generates a random string label.
     *
@@ -56,7 +78,7 @@ trait CommonGenerators {
     *   A generator for `Environment` objects.
     */
   def generateEnvironment(): Gen[Environment] = for {
-    bindings <- Gen.listOf(Gen.zip(generateStringLabel, generateLong()))
+    bindings <- Gen.listOf(Gen.zip(generateStringLabel, generateInt()))
   } yield Environment(bindings: _*)
 
   /** Generates a non-empty `Environment` with random bindings.

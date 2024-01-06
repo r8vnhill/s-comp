@@ -13,9 +13,9 @@ class NumericLiteralTest extends AbstractScumTest {
 
     val table = Table(
       ("n", "expected"),
-      (0, "0"),
-      (1, "1"),
-      (-1, "-1"),
+      (0L, "0"),
+      (1L, "1"),
+      (-1L, "-1"),
       (Long.MaxValue, Long.MaxValue.toString),
       (Long.MinValue, Long.MinValue.toString)
     )
@@ -28,14 +28,14 @@ class NumericLiteralTest extends AbstractScumTest {
 
   "A number" - {
     "should have a value property that is set according to the constructor argument" in {
-      forAll { (n: Int) =>
-        NumericLiteral(n)().n should be(n)
+      forAll { (n: Long) =>
+        NumericLiteral(n).n should be(n)
       }
     }
 
     "can be converted to prefix notation" in {
-      forAll { (n: Int) =>
-        NumericLiteral(n)().toString should be(n.toString)
+      forAll { (n: Long) =>
+        NumericLiteral(n).toString should be(n.toString)
       }
     }
   }

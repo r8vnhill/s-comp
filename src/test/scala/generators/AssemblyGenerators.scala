@@ -24,7 +24,7 @@ trait AssemblyGenerators extends CommonGenerators {
     * @see
     *   [[generateLong]]
     */
-  def generateConstant(value: Gen[Int] = generateLong()): Gen[Constant] = for {
+  def generateConstant(value: Gen[Long] = generateLong()): Gen[Constant] = for {
     v     <- value
     const <- Gen.const(asm.Constant(v))
   } yield const
