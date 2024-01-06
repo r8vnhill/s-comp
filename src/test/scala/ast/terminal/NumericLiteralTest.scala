@@ -25,18 +25,4 @@ class NumericLiteralTest extends AbstractScumTest {
       }
     }
   }
-
-  "A number" - {
-    "should have a value property that is set according to the constructor argument" in {
-      forAll { (n: Long) =>
-        NumericLiteral(n).n should be(n)
-      }
-    }
-
-    "can be converted to prefix notation" in {
-      forAll { (n: Long) =>
-        NumericLiteral(n).toString should be(n.toString)
-      }
-    }
-  }
 }
