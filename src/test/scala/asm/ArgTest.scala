@@ -10,7 +10,7 @@ class ArgTest extends AbstractScumTest with CommonGenerators {
 
   "A Constant" - {
     "should have a 'value' property that is set accordingly to the constructor" in {
-      forAll { (value: Int) =>
+      forAll { (value: Long) =>
         Constant(value).value should be(value)
       }
     }
@@ -40,11 +40,11 @@ class ArgTest extends AbstractScumTest with CommonGenerators {
     * @param defaultConstructor
     *   A function that constructs an instance of the register class with the default offset.
     */
-  private def testRegister(name: String, constructor: Int ⇒ Register, defaultConstructor: ⇒ Register): Unit = {
+  private def testRegister(name: String, constructor: Long ⇒ Register, defaultConstructor: ⇒ Register): Unit = {
     s"$name register" - {
       "has property 'offset' that" - {
         "is set in the constructor" in {
-          forAll { (offset: Int) ⇒
+          forAll { (offset: Long) ⇒
             constructor(offset).offset should be(offset)
           }
         }
@@ -60,10 +60,10 @@ class ArgTest extends AbstractScumTest with CommonGenerators {
         }
 
         "the offset is non-zero" in {
-          forAll(generateInt()) { offset ⇒
+          forAll(generateLong()) { offset ⇒
             whenever(offset != 0) {
               constructor(offset).toString should (
-                fullyMatch regex ("""\[([a-zA-Z]+) \+ 8 \* (-?\d+)]""" withGroups (name, offset.toString))
+                fullyMatch regex ("""\[([a-zA-Z]+) \+ 8 \* (-?\d+)]""".r withGroups (name, offset.toString))
               )
             }
           }

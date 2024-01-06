@@ -11,8 +11,8 @@ package compiler
 private[compiler] def annotate(expression: ast.Expression[String]): ast.Expression[String] = {
   expression match {
     case ast.Let(sym, expr, body) => ast.Let(sym, annotate(expr), annotate(body))
-    case ast.IdLiteral(sym)             => ast.IdLiteral(sym)
-    case ast.NumericLiteral(n)               => ast.NumericLiteral(n)
+    case ast.IdLiteral(sym)       => ast.IdLiteral(sym)
+    case ast.NumericLiteral(n)    => ast.NumericLiteral(n)
     case ast.Increment(e)         => ast.Increment(annotate(e))
     case ast.Decrement(e)         => ast.Decrement(annotate(e))
     case ast.Doubled(e)           => ast.Doubled(annotate(e))

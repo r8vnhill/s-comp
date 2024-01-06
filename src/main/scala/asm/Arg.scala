@@ -20,7 +20,7 @@ sealed trait Arg
   * @param value
   *   The integer value of the constant.
   */
-case class Constant(value: Int) extends Arg with impl.ConstantImpl(value)
+case class Constant(value: Long) extends Arg with impl.ConstantImpl(value)
 
 /** Base trait for representing CPU registers in assembly language.
   *
@@ -39,7 +39,7 @@ sealed trait Register extends Arg with RegisterImpl
   * @param offset
   *   The integer offset associated with the RAX register, defaulting to `RegisterImpl.defaultOffset`.
   */
-case class Rax(override val offset: Int = RegisterImpl.defaultOffset) extends Register
+case class Rax(override val offset: Long = RegisterImpl.defaultOffset) extends Register
 
 /** Represents the EAX register in x86 assembly programming.
   *
@@ -50,7 +50,7 @@ case class Rax(override val offset: Int = RegisterImpl.defaultOffset) extends Re
   * @param offset
   *   The integer offset associated with the EAX register, defaulting to `RegisterImpl.defaultOffset`.
   */
-case class Eax(override val offset: Int = RegisterImpl.defaultOffset) extends Register
+case class Eax(override val offset: Long = RegisterImpl.defaultOffset) extends Register
 
 /** Represents the RSP (Stack Pointer) register in assembly language.
   *
@@ -61,4 +61,4 @@ case class Eax(override val offset: Int = RegisterImpl.defaultOffset) extends Re
   * @param offset
   *   An optional integer offset for the RSP register, defaulting to `RegisterImpl.defaultOffset`.
   */
-case class Rsp(override val offset: Int = RegisterImpl.defaultOffset) extends Register
+case class Rsp(override val offset: Long = RegisterImpl.defaultOffset) extends Register

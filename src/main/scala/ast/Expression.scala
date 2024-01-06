@@ -34,7 +34,7 @@ sealed trait Expression[A] {
   * @param metadata
   *   The metadata associated with this numeric literal expression, provided implicitly.
   */
-case class NumericLiteral[A](n: Int)(using override val metadata: Metadata[A])
+case class NumericLiteral[A](n: Long)(using override val metadata: Metadata[A])
     extends Expression[A]
     with terminal.NumericLiteral(n)
 

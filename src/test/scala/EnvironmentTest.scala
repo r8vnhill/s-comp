@@ -10,7 +10,7 @@ class EnvironmentTest extends AbstractScumTest with CommonGenerators {
   "Environment instance" - {
     "can be created with" - {
       "a map" in {
-        val gen = Gen.nonEmptyMap(Gen.zip(generateStringLabel, generateInt()))
+        val gen = Gen.nonEmptyMap(Gen.zip(generateStringLabel, generateLong()))
         forAll(gen) { map =>
           val env = Environment(map)
           env.boundNames should contain theSameElementsAs map.keys
@@ -18,7 +18,7 @@ class EnvironmentTest extends AbstractScumTest with CommonGenerators {
       }
 
       "a list of pairs" in {
-        val gen = Gen.nonEmptyListOf(Gen.zip(generateStringLabel, generateInt()))
+        val gen = Gen.nonEmptyListOf(Gen.zip(generateStringLabel, generateLong()))
         forAll(gen) { list =>
           val env = Environment(list: _*)
           env.boundNames should contain theSameElementsAs list.toMap.keys
@@ -50,7 +50,7 @@ class EnvironmentTest extends AbstractScumTest with CommonGenerators {
       "when the name is not already bound" in {
         forAll(
           Gen
-            .mapOf(Gen.zip(generateStringLabel, generateInt()))
+            .mapOf(Gen.zip(generateStringLabel, generateLong()))
             .flatMap(map => generateStringLabel.filterNot(map.contains).map(_ -> map))
         ) { case (name, map) =>
           val env      = Environment(map)
@@ -62,7 +62,7 @@ class EnvironmentTest extends AbstractScumTest with CommonGenerators {
       "when the name is already bound" in {
         forAll(
           Gen
-            .nonEmptyMap(Gen.zip(generateStringLabel, generateInt()))
+            .nonEmptyMap(Gen.zip(generateStringLabel, generateLong()))
             .flatMap(map => Gen.oneOf(map.keys.toList).map(_ -> map))
         ) { case (name, map) =>
           whenever(map.contains(name)) {

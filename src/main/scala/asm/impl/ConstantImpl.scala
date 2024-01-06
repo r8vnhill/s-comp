@@ -12,7 +12,7 @@ package asm.impl
   * @param value
   *   The integer value of the constant.
   */
-trait ConstantImpl(value: Int) {
+trait ConstantImpl(value: Long) {
 
   /** Returns a string representation of the constant value.
     *

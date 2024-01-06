@@ -26,9 +26,9 @@ trait AstGenerators extends CommonGenerators {
     * @return
     *   A generator that produces instances of `NumericLiteral[String]`, each containing a randomly generated integer.
     * @see
-    *   [[cl.ravenhill.scum.generators.CommonGenerators.generateInt]]
+    *   [[cl.ravenhill.scum.generators.CommonGenerators.generateLong]]
     */
-  def generateNumericLiteral(value: Gen[Int] = generateInt()): Gen[NumericLiteral[String]] = for {
+  def generateNumericLiteral(value: Gen[Int] = generateLong()): Gen[NumericLiteral[String]] = for {
     v <- value
     n <- Gen.const(NumericLiteral[String](v))
   } yield n

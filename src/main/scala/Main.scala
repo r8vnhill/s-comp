@@ -1,6 +1,6 @@
 package cl.ravenhill.scum
 
-import ast.{If, Let, NumericLiteral, IdLiteral}
+import ast.{IdLiteral, If, Let, NumericLiteral}
 
 import java.util.UUID
 
@@ -24,11 +24,19 @@ given Metadata[String] with {
   override def toString: String = data.replace("-", "_")
 }
 
+given intToNumericLiteral: Conversion[Int, NumericLiteral[String]] with {
+  override def apply(v1: Int): NumericLiteral[String] = NumericLiteral(v1.toLong)
+}
+
+given stringToIdLiteral: Conversion[String, IdLiteral[String]] with {
+  override def apply(v1: String): IdLiteral[String] = IdLiteral(v1)
+}
+
 @main def main(args: String*): Unit = {
   val inputFile = scala.io.Source.fromFile(args(0))
   val input     = inputFile.mkString
   inputFile.close()
-  val ast     = Let("x", If(NumericLiteral(10), NumericLiteral(2), NumericLiteral(0)), If(IdLiteral("x"), NumericLiteral(input.toInt), NumericLiteral(999)))
+  val ast     = Let("x", If(10, 2, 0), If("x", input.toInt, 999))
   val program = compiler.compileProgram(ast)
   println(s"; $ast")
   println(program)

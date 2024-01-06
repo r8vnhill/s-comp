@@ -20,7 +20,7 @@ trait CommonGenerators {
     * @return
     *   A generator for integers within the specified range.
     */
-  def generateInt(min: Int = Int.MinValue, max: Int = Int.MaxValue): Gen[Int] = Gen.choose(min, max)
+  def generateLong(min: Long = Long.MinValue, max: Long = Long.MaxValue): Gen[Int] = Gen.long
 
   /** Generates a random string label.
     *
@@ -56,7 +56,7 @@ trait CommonGenerators {
     *   A generator for `Environment` objects.
     */
   def generateEnvironment(): Gen[Environment] = for {
-    bindings <- Gen.listOf(Gen.zip(generateStringLabel, generateInt()))
+    bindings <- Gen.listOf(Gen.zip(generateStringLabel, generateLong()))
   } yield Environment(bindings: _*)
 
   /** Generates a non-empty `Environment` with random bindings.

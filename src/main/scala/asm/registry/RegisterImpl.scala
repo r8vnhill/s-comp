@@ -20,7 +20,7 @@ trait RegisterImpl {
    *
    * @return The integer offset value associated with the register.
    */
-  val offset: Int
+  val offset: Long
 
   /** Returns a string representation of the register with its offset.
    *
