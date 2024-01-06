@@ -63,12 +63,10 @@ case class Var[A](sym: String)(using override val metadata: Metadata[A])
   *
   * @tparam A
   *   The type of the metadata associated with the unary operation expression.
+  * @param expr
+  *   The expression that the unary operation is applied to.
   */
-sealed trait UnaryOperation[A] extends Expression[A] {
-
-  /** The expression that the unary operation is applied to. */
-  val expr: Expression[A]
-}
+sealed trait UnaryOperation[A](val expr: Expression[A]) extends Expression[A]
 
 /** Represents a decrement operation expression (`--expr`) in an abstract syntax tree (AST).
   *
@@ -88,7 +86,7 @@ sealed trait UnaryOperation[A] extends Expression[A] {
   *   The metadata associated with this decrement operation expression, provided implicitly.
   */
 case class Decrement[A](override val expr: Expression[A])(using override val metadata: Metadata[A])
-    extends UnaryOperation[A]
+    extends UnaryOperation[A](expr)
     with unary.DecrementImpl(expr)
 
 /** Represents an increment operation expression (`++expr`) in an abstract syntax tree (AST).
@@ -108,8 +106,8 @@ case class Decrement[A](override val expr: Expression[A])(using override val met
   * @param metadata
   *   The metadata associated with this increment operation expression, provided implicitly.
   */
-case class Increment[A](expr: ast.Expression[A])(using override val metadata: Metadata[A])
-    extends ast.UnaryOperation[A]
+case class Increment[A](override val expr: ast.Expression[A])(using override val metadata: Metadata[A])
+    extends ast.UnaryOperation[A](expr)
     with unary.IncrementImpl(expr)
 
 /** Represents a 'doubled' operation expression in an abstract syntax tree (AST).
@@ -129,8 +127,8 @@ case class Increment[A](expr: ast.Expression[A])(using override val metadata: Me
   * @param metadata
   *   The metadata associated with this 'doubled' operation expression, provided implicitly.
   */
-case class Doubled[A](expr: Expression[A])(using override val metadata: Metadata[A])
-    extends UnaryOperation[A]
+case class Doubled[A](override val expr: Expression[A])(using override val metadata: Metadata[A])
+    extends UnaryOperation[A](expr)
     with unary.DoubledImpl(expr)
 
 /** Represents the base trait for binary operations in an abstract syntax tree (AST).
@@ -148,7 +146,7 @@ case class Doubled[A](expr: Expression[A])(using override val metadata: Metadata
   * @param right
   *   The right-hand side expression of the binary operation.
   */
-sealed trait BinaryOperation[A](left: Expression[A], right: Expression[A]) extends Expression[A]
+sealed trait BinaryOperation[A](val left: Expression[A], val right: Expression[A]) extends Expression[A]
 
 /** Represents a 'plus' (addition) operation expression in an abstract syntax tree (AST).
   *
@@ -170,8 +168,9 @@ sealed trait BinaryOperation[A](left: Expression[A], right: Expression[A]) exten
   * @param metadata
   *   The metadata associated with this addition operation expression, provided implicitly.
   */
-case class Plus[A](left: Expression[A], right: Expression[A])(using override val metadata: Metadata[A])
-    extends BinaryOperation[A](left, right)
+case class Plus[A](override val left: Expression[A], override val right: Expression[A])(using
+    override val metadata: Metadata[A]
+) extends BinaryOperation[A](left, right)
     with binary.InfixOperatorImpl("+", left, right)
 
 /** Represents a 'minus' (subtraction) operation expression in an abstract syntax tree (AST).
@@ -194,8 +193,9 @@ case class Plus[A](left: Expression[A], right: Expression[A])(using override val
   * @param metadata
   *   The metadata associated with this subtraction operation expression, provided implicitly.
   */
-case class Minus[A](left: Expression[A], right: Expression[A])(using override val metadata: Metadata[A])
-    extends BinaryOperation[A](left, right)
+case class Minus[A](override val left: Expression[A], override val right: Expression[A])(using
+    override val metadata: Metadata[A]
+) extends BinaryOperation[A](left, right)
     with binary.InfixOperatorImpl("-", left, right)
 
 /** Represents a 'times' (multiplication) operation expression in an abstract syntax tree (AST).
@@ -218,8 +218,9 @@ case class Minus[A](left: Expression[A], right: Expression[A])(using override va
   * @param metadata
   *   The metadata associated with this multiplication operation expression, provided implicitly.
   */
-case class Times[A](left: Expression[A], right: Expression[A])(using override val metadata: Metadata[A])
-    extends BinaryOperation[A](left, right)
+case class Times[A](override val left: Expression[A], override val right: Expression[A])(using
+    override val metadata: Metadata[A]
+) extends BinaryOperation[A](left, right)
     with binary.InfixOperatorImpl("*", left, right)
 
 /** Represents an 'if' conditional expression in an abstract syntax tree (AST).
