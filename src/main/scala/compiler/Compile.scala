@@ -74,6 +74,7 @@ private[compiler] def compileExpression[A](
         // (!) Check for overflow/underflow statically, this does not prevent runtime errors
         case n if n < minNum => Failure(NumberUnderflowException(n, minNum))
         case n if n > maxNum => Failure(NumberOverflowException(n, maxNum))
+        // n is left-shifted by 1 to account for the tag bit
         case _               => Success(Seq(Move(Rax(), Constant(n << 1)))) // mov rax, <n>
       }
     case e: ast.UnaryOperation[A]  => compileUnaryOperation(e, environment)
