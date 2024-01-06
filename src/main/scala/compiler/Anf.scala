@@ -1,9 +1,7 @@
 package cl.ravenhill.scum
 package compiler
 
-import cl.ravenhill.scum.ast.*
-
-import java.util.function.UnaryOperator
+import ast.*
 
 /** Determines if an expression is an immediate expression in the context of a compiler.
   *
