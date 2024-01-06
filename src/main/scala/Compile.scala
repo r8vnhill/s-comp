@@ -101,6 +101,7 @@ private def compileBinaryOperation(value: BinaryOperation[_], environment: Envir
   value match {
     case ast.Plus(e1, e2) => ???
     case ast.Minus(e1, e2) => ???
+    case ast.Times(e1, e2) => ???
   }
 }
 

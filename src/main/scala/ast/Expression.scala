@@ -198,6 +198,30 @@ case class Minus[A](left: Expression[A], right: Expression[A])(using override va
     extends BinaryOperation[A](left, right)
     with binary.MinusImpl(left, right)
 
+/** Represents a 'times' (multiplication) operation expression in an abstract syntax tree (AST).
+  *
+  * The `Times` case class extends the `BinaryOperation` trait, specifically to represent a multiplication operation in
+  * an AST. As a binary operation, it encapsulates two expressions (`left` and `right`) that are the operands of the
+  * multiplication. This class is a part of the polymorphic AST structure, where each expression, including binary
+  * operations like multiplication, can carry additional metadata of type `A`.
+  *
+  * The class also implements the `binary.TimesImpl` trait, providing implementation details for the multiplication
+  * operation. This helps to maintain separation between the representation of the operation in the AST and the specific
+  * logic for executing or processing the multiplication.
+  *
+  * @tparam A
+  *   The type of the metadata associated with this multiplication operation expression.
+  * @param left
+  *   The left-hand side expression of the multiplication.
+  * @param right
+  *   The right-hand side expression of the multiplication.
+  * @param metadata
+  *   The metadata associated with this multiplication operation expression, provided implicitly.
+  */
+case class Times[A](left: Expression[A], right: Expression[A])(using override val metadata: Metadata[A])
+    extends BinaryOperation[A](left, right)
+    with binary.TimesImpl(left, right)
+
 /** Represents an 'if' conditional expression in an abstract syntax tree (AST).
   *
   * The `If` case class extends the `Expression` trait, specifically to represent an 'if' conditional expression in an
