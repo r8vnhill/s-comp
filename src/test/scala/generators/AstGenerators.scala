@@ -32,51 +32,53 @@ trait AstGenerators extends CommonGenerators {
     v <- value
     n <- Gen.const(NumericLiteral[String](v))
   } yield n
-  
-  def generateIdLiteral(environment: Environment = Environment.empty): Gen[IdLiteral[String]] = for {
-    name <- Gen.frequency(
-      (1, generateStringLabel),
-      (10, if environment.isEmpty then generateStringLabel else Gen.oneOf(environment.boundNames.toSeq))
-    )
-    idLiteral <- Gen.const(IdLiteral(name))
+
+  def generateIdLiteral(environment: Environment): Gen[IdLiteral[String]] = for {
+    idLiteral <- Gen.oneOf(environment.boundNames.toSeq).map(IdLiteral[String])
   } yield idLiteral
 
-  def generateTerminal: Gen[Expression[String]] = Gen.oneOf(generateNumericLiteral(), generateIdLiteral())
+  def generateTerminal(environment: Environment): Gen[Expression[String]] =
+    Gen.oneOf(generateNumericLiteral(), generateIdLiteral(environment))
 
-  def generateIncrement(maxDepth: Int = 10): Gen[Increment[String]] = for {
-    expr <- generateExpression(maxDepth - 1)
+  def generateIncrement(maxDepth: Int = 10, environment: Environment): Gen[Increment[String]] = for {
+    expr <- generateExpression(maxDepth - 1, environment)
     inc  <- Gen.const(Increment(expr))
   } yield inc
 
-  def generateDecrement(maxDepth: Int = 10): Gen[Decrement[String]] = for {
-    expr <- generateExpression(maxDepth - 1)
+  def generateDecrement(maxDepth: Int = 10, environment: Environment): Gen[Decrement[String]] = for {
+    expr <- generateExpression(maxDepth - 1, environment)
     dec  <- Gen.const(Decrement(expr))
   } yield dec
 
-  def generateLet(maxDepth: Int = 10): Gen[Let[String]] = for {
+  def generateLet(maxDepth: Int = 10, environment: Environment): Gen[Let[String]] = for {
     name <- generateStringLabel
     expr <- generateExpression(maxDepth - 1)
-    body <- generateExpression(maxDepth - 1)
+    body <- generateExpression(maxDepth - 1, environment + name)
     let  <- Gen.const(Let(name, expr, body))
   } yield let
 
-  def generateIf(maxDepth: Int = 10): Gen[If[String]] = for {
-    cond     <- generateExpression(maxDepth - 1)
-    thenExpr <- generateExpression(maxDepth - 1)
-    elseExpr <- generateExpression(maxDepth - 1)
+  def generateIf(maxDepth: Int = 10, environment: Environment): Gen[If[String]] = for {
+    cond     <- generateExpression(maxDepth - 1, environment)
+    thenExpr <- generateExpression(maxDepth - 1, environment)
+    elseExpr <- generateExpression(maxDepth - 1, environment)
     ifExpr   <- Gen.const(If(cond, thenExpr, elseExpr))
   } yield ifExpr
 
-  def generateFunction(maxDepth: Int = 10): Gen[Expression[String]] =
+  def generateFunction(maxDepth: Int = 10, environment: Environment): Gen[Expression[String]] =
     Gen.frequency(
-      (1, generateIncrement(maxDepth)),
-      (1, generateDecrement(maxDepth)),
-      (3, generateLet(maxDepth)),
-      (2, generateIf(maxDepth))
+      (1, generateIncrement(maxDepth, environment)),
+      (1, generateDecrement(maxDepth, environment)),
+      (3, generateLet(maxDepth, environment)),
+      (2, generateIf(maxDepth, environment))
     )
 
-  def generateExpression(maxDepth: Int = 10): Gen[Expression[String]] = maxDepth match {
-    case 0 => generateTerminal
-    case _ => Gen.frequency((4, generateTerminal), (1, generateFunction(maxDepth)))
-  }
+  def generateExpression(
+      maxDepth: Int = 10,
+      environment: Environment = Environment("ZERO" -> 0)
+  ): Gen[Expression[String]] = for {
+    expr <- maxDepth match {
+      case 0 => generateTerminal(environment)
+      case _ => Gen.frequency((2, generateTerminal(environment)), (1, generateFunction(maxDepth, environment)))
+    }
+  } yield expr
 }

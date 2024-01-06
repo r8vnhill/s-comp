@@ -25,8 +25,7 @@ trait CommonGenerators {
     * @return
     *   A generator that produces random Long values within the specified range.
     */
-  def generateLong(min: Long = Long.MinValue, max: Long = Long.MaxValue): Gen[Long] =
-    Gen.long.map(value => min + (value.abs % (max - min + 1)))
+  def generateLong(min: Long = Long.MinValue, max: Long = Long.MaxValue): Gen[Long] = Gen.chooseNum(min, max)
 
   /** Generates a random integer value within a specified range.
     *

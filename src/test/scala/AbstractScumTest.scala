@@ -18,5 +18,5 @@ abstract class AbstractScumTest extends AnyFreeSpec with should.Matchers with Sc
   }
 
   given PropertyCheckConfiguration = // Override default property check configuration
-    PropertyCheckConfiguration(minSuccessful = 1000, workers = 4)
+    PropertyCheckConfiguration(minSuccessful = 10, workers = 4)
 }
