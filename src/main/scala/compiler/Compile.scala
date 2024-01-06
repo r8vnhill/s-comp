@@ -1,4 +1,5 @@
 package cl.ravenhill.scum
+package compiler
 
 import asm.*
 import ast.*
@@ -59,7 +60,7 @@ def compileProgram[A](program: ast.Expression[A]): String = {
   * @tparam A
   *   The type of metadata associated with the AST expression.
   */
-private[scum] def compileExpression[A](
+private[compiler] def compileExpression[A](
     expr: Expression[A],
     environment: Environment = Environment.empty
 ): Try[Seq[Instruction]] =
@@ -99,7 +100,7 @@ private def compileUnaryOperation(value: UnaryOperation[_], environment: Environ
 
 private def compileBinaryOperation(value: BinaryOperation[_], environment: Environment): Try[Seq[Instruction]] = {
   value match {
-    case ast.Plus(e1, e2) => ???
+    case ast.Plus(e1, e2)  => ???
     case ast.Minus(e1, e2) => ???
     case ast.Times(e1, e2) => ???
   }
@@ -193,22 +194,4 @@ def compileIfExpression[A](
     ) ++
     elseBranch ++
     Seq(asm.Label(endLabel)) // <end_label>:
-}
-
-/** Annotates an expression with additional metadata.
-  *
-  * @param expression
-  *   The expression to be annotated.
-  * @return
-  *   The annotated expression.
-  */
-private def annotate(expression: Expression[String]): Expression[String] = {
-  expression match {
-    case ast.Let(sym, expr, body) => ast.Let(sym, annotate(expr), annotate(body))
-    case ast.Var(sym)             => ast.Var(sym)
-    case ast.Num(n)               => ast.Num(n)
-    case ast.Increment(e)         => ast.Increment(annotate(e))
-    case ast.Decrement(e)         => ast.Decrement(annotate(e))
-    case ast.Doubled(e)           => ast.Doubled(annotate(e))
-  }
 }

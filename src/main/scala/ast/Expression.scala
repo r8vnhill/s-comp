@@ -172,7 +172,7 @@ sealed trait BinaryOperation[A](left: Expression[A], right: Expression[A]) exten
   */
 case class Plus[A](left: Expression[A], right: Expression[A])(using override val metadata: Metadata[A])
     extends BinaryOperation[A](left, right)
-    with binary.PlusImpl(left, right)
+    with binary.InfixOperatorImpl("+", left, right)
 
 /** Represents a 'minus' (subtraction) operation expression in an abstract syntax tree (AST).
   *
@@ -196,7 +196,7 @@ case class Plus[A](left: Expression[A], right: Expression[A])(using override val
   */
 case class Minus[A](left: Expression[A], right: Expression[A])(using override val metadata: Metadata[A])
     extends BinaryOperation[A](left, right)
-    with binary.MinusImpl(left, right)
+    with binary.InfixOperatorImpl("-", left, right)
 
 /** Represents a 'times' (multiplication) operation expression in an abstract syntax tree (AST).
   *
@@ -220,7 +220,7 @@ case class Minus[A](left: Expression[A], right: Expression[A])(using override va
   */
 case class Times[A](left: Expression[A], right: Expression[A])(using override val metadata: Metadata[A])
     extends BinaryOperation[A](left, right)
-    with binary.TimesImpl(left, right)
+    with binary.InfixOperatorImpl("*", left, right)
 
 /** Represents an 'if' conditional expression in an abstract syntax tree (AST).
   *

@@ -29,7 +29,7 @@ given Metadata[String] with {
   val input     = inputFile.mkString
   inputFile.close()
   val ast     = Let("x", If(Num(10), Num(2), Num(0)), If(Var("x"), Num(input.toInt), Num(999)))
-  val program = compileProgram(ast)
+  val program = compiler.compileProgram(ast)
   println(s"; $ast")
   println(program)
 }
