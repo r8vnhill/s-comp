@@ -70,7 +70,7 @@ class Environment(private[scum] var bindings: Map[String, Int] = Map.empty[Strin
     * @return
     *   A new `Environment` instance containing the added variable.
     */
-  @targetName("add")
+  @targetName("extendWith")
   def +(name: String): Environment = {
     val slot = 1 + bindings.size
     Environment(bindings + (name -> slot))

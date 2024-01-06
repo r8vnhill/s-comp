@@ -75,10 +75,10 @@ private[compiler] def compileExpression[A](
         case n if n < minNum => Failure(NumberUnderflowException(n, minNum))
         case n if n > maxNum => Failure(NumberOverflowException(n, maxNum))
         // n is left-shifted by 1 to account for the tag bit
-        case _               => Success(Seq(Move(Rax(), Constant(n << 1)))) // mov rax, <n>
+        case _ => Success(Seq(Move(Rax(), Constant(n << 1)))) // mov rax, <n>
       }
     case e: ast.UnaryOperation[A]  => compileUnaryOperation(e, environment)
-    case e: ast.BinaryOperation[A] => compileBinaryOperation(e, environment)
+//    case e: ast.BinaryOperation[A] => compileBinaryOperation(e, environment)
     case ast.Let(sym, expr, body)  => compileLetExpression(sym, expr, body, environment)
     case ifExpr: ast.If[A]         => compileIfExpression(ifExpr, environment)
   }
@@ -109,9 +109,11 @@ private def compileUnaryOperation(value: UnaryOperation[_], environment: Environ
   }
 }
 
-private def compileBinaryOperation(value: BinaryOperation[_], environment: Environment): Try[Seq[Instruction]] = {
+private def compileBinaryOperation[A](value: BinaryOperation[A], environment: Environment)(using
+    metadata: Metadata[A]
+): Try[Seq[Instruction]] = {
   value match {
-    case ast.Plus(e1, e2)  => ???
+    case ast.Plus(e1, e2) => ???
     case ast.Minus(e1, e2) => ???
     case ast.Times(e1, e2) => ???
   }
