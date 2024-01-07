@@ -1,5 +1,5 @@
 package cl.ravenhill.scum
-package ast.terminal
+package ast.literal
 
 /** Trait representing an identifier literal in an abstract syntax tree (AST).
   *
@@ -15,7 +15,7 @@ package ast.terminal
   * @param symbol
   *   The string symbol representing the identifier.
   */
-private[ast] trait IdLiteral(symbol: String) {
+private[ast] trait Id(symbol: String) {
 
   /** Provides a string representation of the identifier.
     *

@@ -33,34 +33,34 @@ import scala.util.{Success, Try}
   */
 def interpret[A](expression: ast.Expression[A], environment: Map[String, Long]): Try[Long] = {
   expression match {
-    case ast.NumericLiteral(value)   => Success(value)
-    case ast.IdLiteral(sym)     => Try(environment(sym))
-    case ast.Increment(e) => interpret(e, environment).map(_ + 1)
-    case ast.Decrement(e) => interpret(e, environment).map(_ - 1)
-    case ast.Doubled(e)   => interpret(e, environment).map(_ * 2)
-    case ast.Plus(e1, e2) =>
+    case ast.NumericLiteral(value, _)   => Success(value)
+    case ast.IdLiteral(sym, _)     => Try(environment(sym))
+    case ast.Increment(e, _) => interpret(e, environment).map(_ + 1)
+    case ast.Decrement(e, _) => interpret(e, environment).map(_ - 1)
+    case ast.Doubled(e, _)   => interpret(e, environment).map(_ * 2)
+    case ast.Plus(e1, e2, _) =>
       interpret(e1, environment).flatMap { v1 =>
         interpret(e2, environment).map { v2 =>
           v1 + v2
         }
       }
-    case ast.Minus(e1, e2) =>
+    case ast.Minus(e1, e2, _) =>
       interpret(e1, environment).flatMap { v1 =>
         interpret(e2, environment).map { v2 =>
           v1 - v2
         }
       }
-    case ast.Times(e1, e2) =>
+    case ast.Times(e1, e2, _) =>
       interpret(e1, environment).flatMap { v1 =>
         interpret(e2, environment).map { v2 =>
           v1 * v2
         }
       }
-    case ast.Let(sym, expr, body) =>
+    case ast.Let(sym, expr, body, _) =>
       interpret(expr, environment).flatMap { v =>
         interpret(body, environment + (sym -> v))
       }
-    case ast.If(predicate, thenExpr, elseExpr) =>
+    case ast.If(predicate, thenExpr, elseExpr, _) =>
       interpret(predicate, environment).flatMap { v =>
         if (v != 0) {
           interpret(thenExpr, environment)

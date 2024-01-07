@@ -1,5 +1,5 @@
 package cl.ravenhill.scum
-package ast.terminal
+package ast.literal
 
 import ast.NumericLiteral
 

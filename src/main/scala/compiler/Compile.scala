@@ -22,8 +22,9 @@ import scala.util.{Failure, Success, Try}
   * @return
   *   A string representing the assembly language code for the compiled program.
   */
-def compileProgram[A](program: ast.Expression[A]): String = {
-  val instructions = compileExpression(program, Environment.empty)
+def compileProgram(program: ast.Expression[Int]): String = {
+  val annotated = annotate(program)
+  val instructions = compileExpression(annotated, Environment.empty)
   val asmString = instructions match {
     case Success(instructions) =>
       instructions
@@ -44,23 +45,6 @@ def compileProgram[A](program: ast.Expression[A]): String = {
      |$suffix""".stripMargin
 }
 
-/** Compiles an AST expression into a sequence of assembly instructions.
-  *
-  * This function takes an expression from the abstract syntax tree (AST) and an environment mapping variable names to
-  * their respective stack slots. It recursively compiles the expression into a sequence of low-level instructions.
-  * Supported expressions include variable declarations ([[ast.Let]]), variable references ([[ast.IdLiteral]]), numeric
-  * literals ([[ast.NumericLiteral]]), unary operations like increment ([[ast.Increment]]), decrement ([[ast.Decrement]]), doubling
-  * ([[ast.Doubled]]), binary operations ([[ast.BinaryOperation]]), and conditional expressions ([[ast.If]]).
-  *
-  * @param expr
-  *   The AST expression to compile.
-  * @param environment
-  *   The environment mapping variable names to stack slots.
-  * @return
-  *   A sequence of instructions representing the compiled form of the expression.
-  * @tparam A
-  *   The type of metadata associated with the AST expression.
-  */
 private[compiler] def compileExpression[A](
     expr: Expression[A],
     environment: Environment = Environment.empty
@@ -68,8 +52,9 @@ private[compiler] def compileExpression[A](
   val minNum = Long.MinValue / 2
   val maxNum = Long.MaxValue / 2
   expr match {
-    case ast.IdLiteral(sym) => environment(sym).map(offset => Seq(Move(Rax(), Rsp - offset))) // mov rax, [rsp - <offset>]
-    case ast.NumericLiteral(n) =>
+    case ast.IdLiteral(sym, _) =>
+      environment(sym).map(offset => Seq(Move(Rax(), Rsp - offset))) // mov rax, [rsp - <offset>]
+    case ast.NumericLiteral(n, _) =>
       n match {
         // (!) Check for overflow/underflow statically, this does not prevent runtime errors
         case n if n < minNum => Failure(NumberUnderflowException(n, minNum))
@@ -77,46 +62,26 @@ private[compiler] def compileExpression[A](
         // n is left-shifted by 1 to account for the tag bit
         case _ => Success(Seq(Move(Rax(), Constant(n << 1)))) // mov rax, <n>
       }
-    case e: ast.UnaryOperation[A]  => compileUnaryOperation(e, environment)
-//    case e: ast.BinaryOperation[A] => compileBinaryOperation(e, environment)
-    case ast.Let(sym, expr, body)  => compileLetExpression(sym, expr, body, environment)
-    case ifExpr: ast.If[A]         => compileIfExpression(ifExpr, environment)
+    case e: ast.UnaryOperation[A]    => compileUnaryOperation(e, environment)
+    case e: ast.BinaryOperation[A]   => compileBinaryOperation(e, environment)
+    case ast.Let(sym, expr, body, _) => compileLetExpression(sym, expr, body, environment)
+    case ifExpr: ast.If[A]           => compileIfExpression(ifExpr, environment)
   }
 }
 
-/** Compiles a unary operation expression into a sequence of machine instructions.
-  *
-  * This function takes a `UnaryOperation` and an `Environment`, and compiles the unary operation into a sequence of
-  * assembly instructions. The specific type of unary operation (Increment, Decrement, Doubled) determines the exact
-  * sequence of instructions generated. The compilation process involves first compiling the expression contained within
-  * the unary operation and then appending the appropriate assembly instruction that performs the unary operation
-  * (Increment, Decrement, or Doubling).
-  *
-  * @param value
-  *   The unary operation expression to be compiled.
-  * @param environment
-  *   The environment context used during compilation, which may contain variable bindings, function definitions, or
-  *   other relevant contextual information.
-  * @return
-  *   A `Try` containing a sequence of `Instruction`s representing the compiled unary operation, or a failure if the
-  *   compilation is unsuccessful.
-  */
-private def compileUnaryOperation(value: UnaryOperation[_], environment: Environment): Try[Seq[Instruction]] = {
+private def compileUnaryOperation[A](value: UnaryOperation[A], environment: Environment): Try[Seq[Instruction]] = {
   value match {
-    case ast.Increment(e) => compileExpression(e, environment).map(_ :+ asm.Increment(Rax()))
-    case ast.Decrement(e) => compileExpression(e, environment).map(_ :+ asm.Decrement(Rax()))
-    case ast.Doubled(e)   => compileExpression(e, environment).map(_ :+ asm.Add(Rax(), Rax()))
+    case ast.Increment(e, _) => compileExpression(e, environment).map(_ :+ asm.Increment(Rax()))  // inc rax
+    case ast.Decrement(e, _) => compileExpression(e, environment).map(_ :+ asm.Decrement(Rax()))  // dec rax
+    case ast.Doubled(e, _)   => compileExpression(e, environment).map(_ :+ asm.Add(Rax(), Rax())) // add rax, rax
   }
 }
 
-private def compileBinaryOperation[A](value: BinaryOperation[A], environment: Environment)(using
-    metadata: Metadata[A]
-): Try[Seq[Instruction]] = {
-  value match {
-    case ast.Plus(e1, e2) => ???
-    case ast.Minus(e1, e2) => ???
-    case ast.Times(e1, e2) => ???
-  }
+private def compileBinaryOperation[A](value: BinaryOperation[A], environment: Environment): Try[Seq[Instruction]] = {
+  val left  = compileExpression(value.left, environment)
+  val right = compileExpression(value.right, environment)
+  println(s"left: $left")
+  ???
 }
 
 /** Compiles a 'Let' expression in an abstract syntax tree (AST) into assembly instructions.
@@ -182,15 +147,15 @@ private def compileLetExpression[A](
   *   A `Try[Seq[Instruction]]` representing the compiled form of the 'If' expression, which may fail if any part of the
   *   expression compilation fails.
   */
-def compileIfExpression[A](
+private def compileIfExpression[A](
     ifExpr: If[A],
     environment: Environment
 ): Try[Seq[Instruction]] = {
-  val If(pred, thenExpr, elseExpr) = ifExpr
+  val If(pred, thenExpr, elseExpr, _) = ifExpr
   val annotation                   = ifExpr.metadata
-  val ifLabel                      = s"if_$annotation"
-  val elseLabel                    = s"else_$annotation"
-  val endLabel                     = s"endif_$annotation"
+  val ifLabel                      = s"if_${annotation.get}"
+  val elseLabel                    = s"else_${annotation.get}"
+  val endLabel                     = s"endif_${annotation.get}"
   for {
     predicate  <- compileExpression(pred, environment)
     thenBranch <- compileExpression(thenExpr, environment)

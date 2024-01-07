@@ -1,5 +1,5 @@
 package cl.ravenhill.scum
-package ast.terminal
+package ast.literal
 
 /** Trait for representing numeric literals in an abstract syntax tree (AST).
   *
@@ -14,7 +14,7 @@ package ast.terminal
   * @param n
   *   The integer value of the numeric literal.
   */
-private[ast] trait NumericLiteral(n: Long) {
+private[ast] trait Numeric(n: Long) {
 
   /** Returns a string representation of the numeric literal.
     *
