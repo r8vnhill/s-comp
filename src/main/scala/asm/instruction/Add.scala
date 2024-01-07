@@ -17,7 +17,7 @@ package asm.instruction
   * @param source
   *   The source operand for the 'add' instruction, of type `ass.Arg`.
   */
-trait AddImpl(destination: asm.Arg, source: asm.Arg) {
+private[asm] trait Add(destination: asm.Arg, source: asm.Arg) {
 
   /** Returns a string representation of the 'add' instruction.
     *

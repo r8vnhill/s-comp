@@ -23,8 +23,9 @@ import scala.util.{Failure, Success, Try}
   *   A string representing the assembly language code for the compiled program.
   */
 def compileProgram(program: ast.Expression[Int]): String = {
-  val annotated = annotate(program)
-  val instructions = compileExpression(annotated, Environment.empty)
+  val annotated    = annotate(program)
+  val anfProgram   = toAnf(annotated)
+  val instructions = compileExpression(anfProgram, Environment.empty)
   val asmString = instructions match {
     case Success(instructions) =>
       instructions
@@ -60,7 +61,7 @@ private[compiler] def compileExpression[A](
         case n if n < minNum => Failure(NumberUnderflowException(n, minNum))
         case n if n > maxNum => Failure(NumberOverflowException(n, maxNum))
         // n is left-shifted by 1 to account for the tag bit
-        case _ => Success(Seq(Move(Rax(), Constant(n << 1)))) // mov rax, <n>
+        case _ => Success(Seq(Move(Rax(), Constant(n)))) // mov rax, <n>
       }
     case e: ast.UnaryOperation[A]    => compileUnaryOperation(e, environment)
     case e: ast.BinaryOperation[A]   => compileBinaryOperation(e, environment)
@@ -78,11 +79,16 @@ private def compileUnaryOperation[A](value: UnaryOperation[A], environment: Envi
 }
 
 private def compileBinaryOperation[A](value: BinaryOperation[A], environment: Environment): Try[Seq[Instruction]] = {
-  val left  = compileExpression(value.left, environment)
-  val right = compileExpression(value.right, environment)
-  println(s"left: $left")
-  ???
+  value match
+    case Plus(left, right, _) =>
+      for {
+        left  <- compileExpression(left, environment)
+        right <- compileExpression(right, environment)
+      } yield left ++ Seq(asm.Push(Rax())) ++ right ++ Seq(asm.Pop(Rbx()), asm.Add(Rax(), Rbx()))
+    case Minus(left, right, metadata) => ???
+    case Times(left, right, metadata) => ???
 }
+  
 
 /** Compiles a 'Let' expression in an abstract syntax tree (AST) into assembly instructions.
   *
@@ -152,10 +158,10 @@ private def compileIfExpression[A](
     environment: Environment
 ): Try[Seq[Instruction]] = {
   val If(pred, thenExpr, elseExpr, _) = ifExpr
-  val annotation                   = ifExpr.metadata
-  val ifLabel                      = s"if_${annotation.get}"
-  val elseLabel                    = s"else_${annotation.get}"
-  val endLabel                     = s"endif_${annotation.get}"
+  val annotation                      = ifExpr.metadata
+  val ifLabel                         = s"if_${annotation.get}"
+  val elseLabel                       = s"else_${annotation.get}"
+  val endLabel                        = s"endif_${annotation.get}"
   for {
     predicate  <- compileExpression(pred, environment)
     thenBranch <- compileExpression(thenExpr, environment)

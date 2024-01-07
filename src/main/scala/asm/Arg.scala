@@ -41,6 +41,17 @@ sealed trait Register extends Arg with RegisterImpl
   */
 case class Rax(override val offset: Long = RegisterImpl.defaultOffset) extends Register
 
+/** Represents the RBX register in x86-64 assembly programming.
+  *
+  * `Rbx` is a case class extending the `Register` trait. It specifically represents the RBX register, commonly used in
+  * x86-64 assembly language. The class allows for a type-safe and clear representation of the RBX register, along with
+  * an optional integer offset for more complex addressing.
+  *
+  * @param offset
+  *   The integer offset associated with the RBX register, defaulting to `RegisterImpl.defaultOffset`.
+  */
+case class Rbx(override val offset: Long = RegisterImpl.defaultOffset) extends Register
+
 /** Represents the EAX register in x86 assembly programming.
   *
   * `Eax` is a case class extending the `Register` trait. It represents the EAX register, widely used in x86 assembly

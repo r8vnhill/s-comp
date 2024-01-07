@@ -54,7 +54,7 @@ def toAnf[A](expression: Expression[A]): Expression[A] = {
     case Plus(left, right, annotation) =>
       val (leftAns, leftContext)   = helper(left)
       val (rightAns, rightContext) = helper(right)
-      val temp                     = s"plus_$annotation"
+      val temp                     = s"plus_${annotation.get}"
       val newExpr                  = IdLiteral[A](temp)
       val newContext               = leftContext ++ rightContext :+ (temp -> Plus(leftAns, rightAns))
       (newExpr, newContext)

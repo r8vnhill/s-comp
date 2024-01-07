@@ -40,7 +40,7 @@ case class Move(dest: Arg, src: Arg) extends Instruction with instruction.MoveIm
   * @param src
   *   The source operand of the addition.
   */
-case class Add(dest: Arg, src: Arg) extends Instruction with instruction.AddImpl(dest, src)
+case class Add(dest: Arg, src: Arg) extends Instruction with instruction.Add(dest, src)
 
 /** Represents the 'sub' (subtract) instruction in assembly language.
   *
@@ -117,3 +117,44 @@ case class Jump(label: String) extends Instruction with instruction.JumpImpl(lab
   *   The name of the label.
   */
 case class Label(label: String) extends Instruction with instruction.LabelImpl(label)
+
+/** Represents a comment as an instruction in an assembly language or similar programming context.
+  *
+  * The `Comment` case class extends the `Instruction` trait and mixes in the `instruction.Comment` trait. It is used to
+  * represent a comment in a sequence of instructions or code, typically in assembly language or a similar low-level
+  * programming context. This class stores the text of the comment and is treated as an instruction, allowing it to be
+  * integrated into a sequence of executable instructions or code statements. The inclusion of comments as instructions
+  * can be particularly useful for generating human-readable and self-documenting assembly code, aiding in debugging and
+  * maintenance.
+  *
+  * @param text
+  *   The text of the comment.
+  */
+case class Comment(text: String) extends Instruction with instruction.Comment(text)
+
+/** Represents a 'push' instruction in assembly language as a specific case of an instruction.
+  *
+  * The `Push` case class extends the `Instruction` trait and mixes in the `instruction.Push` trait. It specifically
+  * encapsulates the assembly 'push' instruction, which is used to push a given argument onto the stack. This
+  * instruction is crucial in assembly language programming for stack operations, such as preparing for a function call
+  * or saving register values. The class takes an argument (`arg`) that represents the value to be pushed onto the stack
+  * and provides a concise and clear representation of this operation in assembly language syntax.
+  *
+  * @param arg
+  *   The argument to be pushed onto the stack, represented as an `Arg`.
+  */
+case class Push(arg: Arg) extends Instruction with instruction.Push(arg)
+
+/** Represents a 'pop' instruction in assembly language as a specific instance of an instruction.
+  *
+  * The `Pop` case class extends the `Instruction` trait and mixes in the `instruction.Pop` trait. It specifically
+  * encapsulates the assembly 'pop' instruction, which is used to pop the top value from the stack into a given
+  * destination argument. This operation is a fundamental part of stack manipulation in assembly language programming,
+  * used for retrieving values from the stack, typically in the context of function returns or register restoration. The
+  * class takes a destination argument (`dest`) that specifies where the popped value should be stored, and it provides
+  * a clear representation of this operation in assembly language syntax.
+  *
+  * @param dest
+  *   The destination argument where the popped value will be stored, represented as an `Arg`.
+  */
+case class Pop(override val dest: Arg) extends Instruction with instruction.Pop(dest)

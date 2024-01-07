@@ -34,7 +34,7 @@ trait AstGenerators extends CommonGenerators {
   } yield n
 
   def generateIdLiteral(environment: Environment): Gen[IdLiteral[String]] = for {
-    idLiteral <- Gen.oneOf(environment.boundNames.toSeq).map(IdLiteral[String])
+    idLiteral <- Gen.oneOf(environment.boundNames.toSeq).map(IdLiteral[String](_, None))
   } yield idLiteral
 
   def generateTerminal(environment: Environment): Gen[Expression[String]] =
