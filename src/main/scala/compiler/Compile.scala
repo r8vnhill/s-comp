@@ -5,7 +5,6 @@ import asm.*
 import ast.*
 
 import cl.ravenhill.scum.asm.registry.-
-import cl.ravenhill.scum.exceptions.{NumberOverflowException, NumberUnderflowException}
 
 import scala.util.{Failure, Success, Try}
 
@@ -58,8 +57,8 @@ private[compiler] def compileExpression[A](
     case ast.NumericLiteral(n, _) =>
       n match {
         // (!) Check for overflow/underflow statically, this does not prevent runtime errors
-        case n if n < minNum => Failure(NumberUnderflowException(n, minNum))
-        case n if n > maxNum => Failure(NumberOverflowException(n, maxNum))
+//        case n if n < minNum => Failure(NumberUnderflowException(n, minNum))
+//        case n if n > maxNum => Failure(NumberOverflowException(n, maxNum))
         // n is left-shifted by 1 to account for the tag bit
         case _ => Success(Seq(Move(Rax(), Constant(n)))) // mov rax, <n>
       }
@@ -85,10 +84,13 @@ private def compileBinaryOperation[A](value: BinaryOperation[A], environment: En
         left  <- compileExpression(left, environment)
         right <- compileExpression(right, environment)
       } yield left ++ Seq(asm.Push(Rax())) ++ right ++ Seq(asm.Pop(Rbx()), asm.Add(Rax(), Rbx()))
-    case Minus(left, right, metadata) => ???
+    case Minus(left, right, metadata) =>
+      for {
+        left  <- compileExpression(left, environment)
+        right <- compileExpression(right, environment)
+      } yield left ++ Seq(asm.Push(Rax())) ++ right ++ Seq(asm.Pop(Rbx()), asm.Sub(Rax(), Rbx()))
     case Times(left, right, metadata) => ???
 }
-  
 
 /** Compiles a 'Let' expression in an abstract syntax tree (AST) into assembly instructions.
   *

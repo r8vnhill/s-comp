@@ -11,3 +11,4 @@ libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.17"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.17" % "test"
 libraryDependencies += "org.scalatestplus" %% "scalacheck-1-17" % "3.2.17.0" % "test"
+libraryDependencies += "com.github.stefanbirkner" % "system-lambda" % "1.2.1" % "test"

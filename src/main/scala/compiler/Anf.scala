@@ -58,6 +58,20 @@ def toAnf[A](expression: Expression[A]): Expression[A] = {
       val newExpr                  = IdLiteral[A](temp)
       val newContext               = leftContext ++ rightContext :+ (temp -> Plus(leftAns, rightAns))
       (newExpr, newContext)
+    case Minus(left, right, annotation) =>
+        val (leftAns, leftContext)   = helper(left)
+        val (rightAns, rightContext) = helper(right)
+        val temp                     = s"minus_${annotation.get}"
+        val newExpr                  = IdLiteral[A](temp)
+        val newContext               = leftContext ++ rightContext :+ (temp -> Minus(leftAns, rightAns))
+        (newExpr, newContext)
+    case Times(left, right, annotation) =>
+        val (leftAns, leftContext)   = helper(left)
+        val (rightAns, rightContext) = helper(right)
+        val temp                     = s"times_${annotation.get}"
+        val newExpr                  = IdLiteral[A](temp)
+        val newContext               = leftContext ++ rightContext :+ (temp -> Times(leftAns, rightAns))
+        (newExpr, newContext)
     case Let(name, expr, body, _) =>
       val (exprAns, exprContext) = helper(expr)
       val (bodyAns, bodyContext) = helper(body)

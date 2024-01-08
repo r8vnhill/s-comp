@@ -1,9 +1,9 @@
-
 package cl.ravenhill.scum
 package asm
 
-import org.scalacheck.Gen
 import generators.*
+
+import org.scalacheck.Gen
 
 class InstructionTest extends AbstractScumTest with AssemblyGenerators {
   "A Mov instruction" - {
@@ -45,7 +45,7 @@ class InstructionTest extends AbstractScumTest with AssemblyGenerators {
   "An Add instruction" - {
     "should store the source passed to the constructor" in {
       forAll(generateArg, generateArg) { (src: Arg, dst: Arg) =>
-        Add(dst, src).src should be (src)
+        Add(dst, src).src should be(src)
       }
     }
 
@@ -65,7 +65,7 @@ class InstructionTest extends AbstractScumTest with AssemblyGenerators {
   "A Sub instruction" - {
     "should store the source passed to the constructor" in {
       forAll(generateArg, generateArg) { (src: Arg, dst: Arg) =>
-        Sub(dst, src).src should be (src)
+        Sub(dst, src).src should be(src)
       }
     }
 
@@ -109,11 +109,11 @@ class InstructionTest extends AbstractScumTest with AssemblyGenerators {
       }
     }
   }
-  
+
   "A Cmp instruction" - {
     "should store the source passed to the constructor" in {
       forAll(generateArg, generateArg) { (src: Arg, dst: Arg) =>
-        Compare(dst, src).src should be (src)
+        Compare(dst, src).src should be(src)
       }
     }
 
@@ -129,7 +129,7 @@ class InstructionTest extends AbstractScumTest with AssemblyGenerators {
       }
     }
   }
-  
+
   "A Je instruction" - {
     "should store the label passed to the constructor" in {
       forAll(generateStringLabel) { label =>
@@ -143,7 +143,7 @@ class InstructionTest extends AbstractScumTest with AssemblyGenerators {
       }
     }
   }
-  
+
   "A Jump instruction" - {
     "should store the label passed to the constructor" in {
       forAll(generateStringLabel) { label =>
@@ -157,7 +157,7 @@ class InstructionTest extends AbstractScumTest with AssemblyGenerators {
       }
     }
   }
-  
+
   "A Label instruction" - {
     "should store the label passed to the constructor" in {
       forAll(generateStringLabel) { label =>
@@ -168,6 +168,34 @@ class InstructionTest extends AbstractScumTest with AssemblyGenerators {
     "can be converted to a String" in {
       forAll(generateStringLabel) { label =>
         Label(label).toString should be(s"$label:")
+      }
+    }
+  }
+
+  "Pop instruction" - {
+    "has a string representation" in {
+      forAll(generateArg) { arg =>
+        Pop(arg).toString should be(s"pop $arg")
+      }
+    }
+  }
+
+  "Push instruction" - {
+    "has a string representation" in {
+      forAll(generateArg) { arg =>
+        Push(arg).toString should be(s"push $arg")
+      }
+    }
+  }
+
+  "Comment instruction" - {
+    "has a string representation" in {
+      forAll(
+        Gen.asciiStr
+          .filterNot(_.contains("\n"))
+          .filterNot(_.contains("\r"))
+      ) { comment =>
+        Comment(comment).toString should be(s"; $comment")
       }
     }
   }

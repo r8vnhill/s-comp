@@ -37,6 +37,8 @@ class Environment(private[scum] var bindings: Map[String, Int] = Map.empty[Strin
     *   A `Try[Int]` that is successful with the slot number if the variable exists, or a failure if not found.
     */
   def apply(name: String): Try[Int] = Try(bindings(name))
+  
+  def apply(slot: Int): Try[String] = Try(bindings.find(_._2 == slot).get._1)
 
   /** Retrieves all variable names currently stored in the environment.
     *
