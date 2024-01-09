@@ -14,6 +14,8 @@ import scala.util.Try
   */
 class Environment(private[scum] var bindings: Map[String, Int] = Map.empty[String, Int]) {
 
+  private var _lastSlot: Int = 0
+  
   /** Auxiliary constructor creating an environment from a sequence of key-value pairs.
     *
     * This constructor allows for the creation of an `Environment` instance with a pre-defined set of variable names and
@@ -24,7 +26,9 @@ class Environment(private[scum] var bindings: Map[String, Int] = Map.empty[Strin
     *   A sequence of key-value pairs where the key is the variable name and the value is its slot.
     */
   def this(keyValues: (String, Int)*) = this(keyValues.toMap)
-
+  
+  def lastSlot: Int = _lastSlot
+  
   /** Retrieves the slot associated with a given variable name.
     *
     * This method attempts to find the slot number for a specified variable name. If the variable is not found in the
@@ -38,8 +42,6 @@ class Environment(private[scum] var bindings: Map[String, Int] = Map.empty[Strin
     */
   def apply(name: String): Try[Int] = Try(bindings(name))
   
-  def apply(slot: Int): Try[String] = Try(bindings.find(_._2 == slot).get._1)
-
   /** Retrieves all variable names currently stored in the environment.
     *
     * This method provides access to all variable names defined in the environment. It is useful for inspecting the
@@ -75,6 +77,7 @@ class Environment(private[scum] var bindings: Map[String, Int] = Map.empty[Strin
   @targetName("extendWith")
   def +(name: String): Environment = {
     val slot = 1 + bindings.size
+    _lastSlot = slot
     Environment(bindings + (name -> slot))
   }
 }

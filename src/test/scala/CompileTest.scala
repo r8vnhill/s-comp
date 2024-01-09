@@ -2,6 +2,7 @@ package cl.ravenhill.scum
 
 import generators.AstGenerators
 
+import cl.ravenhill.scum.ast.{IdLiteral, NumericLiteral}
 import org.scalatest.BeforeAndAfterEach
 
 import scala.sys.process.*
@@ -22,7 +23,11 @@ class CompileTest extends AbstractScumTest with BeforeAndAfterEach with CompileU
       val objPath = buildObj(asmPath)
       val binPath = linkObj(objPath)
       val output = Process(binPath.getPath).!!.trim
-      output should be(interpret(expr, Map.empty).get.toString)
+      output should be(interpret(expr, Map("ZERO" -> 0)).get.toString)
     }
+  }
+  
+  "Test1" in {
+    
   }
 }

@@ -3,6 +3,8 @@ package compiler
 
 import ast.*
 
+import java.util.UUID
+
 /** Determines if an expression is an immediate expression in the context of a compiler.
   *
   * This function assesses whether a given expression in an abstract syntax tree (AST) is an 'immediate' expression.
@@ -54,7 +56,7 @@ def toAnf[A](expression: Expression[A]): Expression[A] = {
     case Plus(left, right, annotation) =>
       val (leftAns, leftContext)   = helper(left)
       val (rightAns, rightContext) = helper(right)
-      val temp                     = s"plus_${annotation.get}"
+      val temp                     = s"plus_${UUID.randomUUID().toString.replace("-", "_")}"
       val newExpr                  = IdLiteral[A](temp)
       val newContext               = leftContext ++ rightContext :+ (temp -> Plus(leftAns, rightAns))
       (newExpr, newContext)

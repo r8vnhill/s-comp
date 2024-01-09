@@ -36,7 +36,8 @@ def compileProgram(program: ast.Expression[Int]): String = {
     case Failure(exception) => throw exception
   }
   val prelude =
-    """section .text
+    s"""${Comment(program.toString)}
+      |section .text
       |global our_code_starts_here
       |our_code_starts_here:""".stripMargin
   val suffix = s"  $Return"
@@ -82,13 +83,15 @@ private def compileBinaryOperation[A](value: BinaryOperation[A], environment: En
     case Plus(left, right, _) =>
       for {
         left  <- compileExpression(left, environment)
+        leftSlot = environment.lastSlot
         right <- compileExpression(right, environment)
-      } yield left ++ Seq(asm.Push(Rax())) ++ right ++ Seq(asm.Pop(Rbx()), asm.Add(Rax(), Rbx()))
+      } yield left ++ Seq(Move(Rsp - leftSlot, Rax())) ++ right ++ Seq(Add(Rax(), Rsp - leftSlot))
     case Minus(left, right, metadata) =>
       for {
         left  <- compileExpression(left, environment)
+        leftSlot = environment.lastSlot
         right <- compileExpression(right, environment)
-      } yield left ++ Seq(asm.Push(Rax())) ++ right ++ Seq(asm.Pop(Rbx()), asm.Sub(Rax(), Rbx()))
+      } yield right ++ Seq(Move(Rsp - leftSlot, Rax())) ++ left ++ Seq(Sub(Rax(), Rsp - leftSlot))
     case Times(left, right, metadata) => ???
 }
 
