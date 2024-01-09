@@ -79,20 +79,30 @@ private def compileUnaryOperation[A](value: UnaryOperation[A], environment: Envi
 }
 
 private def compileBinaryOperation[A](value: BinaryOperation[A], environment: Environment): Try[Seq[Instruction]] = {
-  value match
-    case Plus(left, right, _) =>
+  def compileOp(left: Expression[A], right: Expression[A], op: (Arg, Arg) => Instruction): Try[Seq[Instruction]] = {
+    for {
+      leftInstr  <- compileExpression(left, environment)
+      rightInstr <- compileExpression(right, environment)
+      rightSlot = environment.lastSlot
+    } yield rightInstr ++ Seq(Move(Rsp - rightSlot, Rax())) ++ leftInstr ++ Seq(op(Rax(), Rsp - rightSlot))
+  }
+
+  value match {
+    case Plus(left, right, _)  => compileOp(left, right, Add.apply)
+    case Minus(left, right, _) => compileOp(left, right, Subtract.apply)
+    case Times(left, right, _) =>
       for {
-        left  <- compileExpression(left, environment)
-        leftSlot = environment.lastSlot
-        right <- compileExpression(right, environment)
-      } yield left ++ Seq(Move(Rsp - leftSlot, Rax())) ++ right ++ Seq(Add(Rax(), Rsp - leftSlot))
-    case Minus(left, right, metadata) =>
-      for {
-        left  <- compileExpression(left, environment)
-        leftSlot = environment.lastSlot
-        right <- compileExpression(right, environment)
-      } yield right ++ Seq(Move(Rsp - leftSlot, Rax())) ++ left ++ Seq(Sub(Rax(), Rsp - leftSlot))
-    case Times(left, right, metadata) => ???
+        leftInstr  <- compileExpression(left, environment)
+        rightInstr <- compileExpression(right, environment)
+        rightSlot = environment.lastSlot
+      } yield rightInstr ++
+        Seq(Move(Rsp - rightSlot, Rax())) ++
+        leftInstr ++
+        Seq(
+          Move(Rbx(), Rsp - rightSlot), // mov rbx, [rsp - <offset>]
+          Multiply(Rbx())
+        )
+  }
 }
 
 /** Compiles a 'Let' expression in an abstract syntax tree (AST) into assembly instructions.

@@ -14,8 +14,7 @@ private given stringToIdLiteral: Conversion[String, IdLiteral[Int]] with {
 //  val inputFile = scala.io.Source.fromFile(args(0))
 //  val input     = inputFile.mkString
 //  inputFile.close()
-  val ast     = Plus(Minus(4, 3), 2)
+  val ast     = Plus(Minus(4, 3), Times(4, 5))
   val program = compiler.compileProgram(ast)
-  println(s"; $ast")
   println(program)
 }

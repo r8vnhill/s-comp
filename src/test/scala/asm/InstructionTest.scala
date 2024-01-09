@@ -65,19 +65,19 @@ class InstructionTest extends AbstractScumTest with AssemblyGenerators {
   "A Sub instruction" - {
     "should store the source passed to the constructor" in {
       forAll(generateArg, generateArg) { (src: Arg, dst: Arg) =>
-        Sub(dst, src).src should be(src)
+        Subtract(dst, src).src should be(src)
       }
     }
 
     "should store the destination passed to the constructor" in {
       forAll(generateArg, generateArg) { (src: Arg, dst: Arg) =>
-        Sub(dst, src).dest should be(dst)
+        Subtract(dst, src).dest should be(dst)
       }
     }
 
     "can be converted to a String" in {
       forAll(generateArg, generateArg) { (dest: Arg, src: Arg) =>
-        Sub(dest, src).toString should be(s"sub $dest, $src")
+        Subtract(dest, src).toString should be(s"sub $dest, $src")
       }
     }
   }

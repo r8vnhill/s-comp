@@ -44,16 +44,19 @@ case class Add(dest: Arg, src: Arg) extends Instruction with instruction.Add(des
 
 /** Represents the 'sub' (subtract) instruction in assembly language.
   *
-  * `Sub` is a case class extending the `Instruction` trait and mixing in the `instruction.SubImpl` trait. It
-  * encapsulates the 'sub' instruction, used to subtract the source (`src`) operand from the destination (`dest`)
-  * operand.
-  *
   * @param dest
   *   The destination operand of the subtraction.
   * @param src
   *   The source operand of the subtraction.
   */
-case class Sub(dest: Arg, src: Arg) extends Instruction with instruction.SubImpl(dest, src)
+case class Subtract(dest: Arg, src: Arg) extends Instruction with instruction.Subtract(dest, src)
+
+/** Represents a 'multiply' instruction in assembly language as a specific instance of an instruction.
+ * 
+  * @param src
+  *   The source argument representing the second operand in the multiplication.
+  */
+case class Multiply(src: Arg) extends Instruction with instruction.Multiply(src)
 
 /** Represents the 'inc' (increment) instruction in assembly language.
   *

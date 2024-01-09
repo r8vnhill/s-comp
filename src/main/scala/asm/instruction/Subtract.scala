@@ -17,7 +17,7 @@ package asm.instruction
   * @param src
   *   The source operand for the 'sub' instruction, of type `ass.Arg`.
   */
-trait SubImpl(dest: asm.Arg, src: asm.Arg) {
+private[asm] trait Subtract(dest: asm.Arg, src: asm.Arg) {
 
   /** Returns a string representation of the 'sub' instruction.
     *
