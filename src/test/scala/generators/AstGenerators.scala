@@ -38,7 +38,10 @@ trait AstGenerators extends CommonGenerators {
   } yield idLiteral
 
   def generateTerminal(environment: Environment): Gen[Expression[Int]] =
-    Gen.oneOf(generateNumericLiteral(), generateIdLiteral(environment))
+    Gen.frequency(
+      (1, generateNumericLiteral()),
+      (if (environment.boundNames.isEmpty) 0 else 1, generateIdLiteral(environment))
+    )
 
   def generateIncrement(maxDepth: Int = 10, environment: Environment): Gen[Increment[Int]] = for {
     expr <- generateExpression(maxDepth - 1, environment)
