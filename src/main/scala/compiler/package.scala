@@ -136,9 +136,9 @@ package object compiler {
     val (leftAnnotated, leftCur)   = annotateNode(op.left, cur)
     val (rightAnnotated, rightCur) = annotateNode(op.right, leftCur)
     op match {
-      case Plus(_, _, _)  => (Plus(leftAnnotated, rightAnnotated, cur), rightCur + 1)
-      case Minus(_, _, _) => (Minus(leftAnnotated, rightAnnotated, cur), rightCur + 1)
-      case Times(_, _, _) => (Times(leftAnnotated, rightAnnotated, cur), rightCur + 1)
+      case Plus(_, _, _)  => (Plus(leftAnnotated, rightAnnotated, rightCur), rightCur + 1)
+      case Minus(_, _, _) => (Minus(leftAnnotated, rightAnnotated, rightCur), rightCur + 1)
+      case Times(_, _, _) => (Times(leftAnnotated, rightAnnotated, rightCur), rightCur + 1)
     }
   }
 
@@ -164,7 +164,7 @@ package object compiler {
     val (predicateAnnotated, predCur) = annotateNode(ifExpr.predicate, cur)
     val (thenAnnotated, thenCur)      = annotateNode(ifExpr.thenBranch, predCur)
     val (elseAnnotated, elseCur)      = annotateNode(ifExpr.elseBranch, thenCur)
-    (If(predicateAnnotated, thenAnnotated, elseAnnotated, cur), elseCur + 1)
+    (If(predicateAnnotated, thenAnnotated, elseAnnotated, elseCur), elseCur + 1)
   }
 
   /** Annotates a 'let' expression within an abstract syntax tree (AST).
@@ -186,6 +186,6 @@ package object compiler {
   private def annotateLet(letExpr: Let[Int], cur: Int): (Let[Int], Int) = {
     val (exprAnnotated, exprCur) = annotateNode(letExpr.expr, cur)
     val (bodyAnnotated, bodyCur) = annotateNode(letExpr.body, exprCur)
-    (Let(letExpr.sym, exprAnnotated, bodyAnnotated, cur), bodyCur + 1)
+    (Let(letExpr.sym, exprAnnotated, bodyAnnotated, bodyCur), bodyCur + 1)
   }
 }

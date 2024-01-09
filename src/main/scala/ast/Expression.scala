@@ -1,6 +1,8 @@
 package cl.ravenhill.scum
 package ast
 
+import cl.ravenhill.scum.ast.ternary.{If, Let}
+
 /** Base trait for an expression in an abstract syntax tree (AST).
   *
   * This trait forms the foundation of a polymorphic AST structure, where each expression can optionally carry
@@ -122,7 +124,7 @@ case class Plus[A](
     override val right: Expression[A],
     override val metadata: Option[A] = None
 ) extends BinaryOperation[A](left, right)
-    with binary.InfixOperatorImpl("+", left, right)
+    with binary.InfixOperatorImpl("+", left, right, metadata)
 
 /** Represents a 'subtraction' binary operation in an AST.
   *
@@ -140,7 +142,7 @@ case class Minus[A](
     override val right: Expression[A],
     override val metadata: Option[A] = None
 ) extends BinaryOperation[A](left, right)
-    with binary.InfixOperatorImpl("-", left, right)
+    with binary.InfixOperatorImpl("-", left, right, metadata)
 
 /** Represents a 'multiplication' binary operation in an AST.
   *
@@ -158,7 +160,7 @@ case class Times[A](
     override val right: Expression[A],
     override val metadata: Option[A] = None
 ) extends BinaryOperation[A](left, right)
-    with binary.InfixOperatorImpl("*", left, right)
+    with binary.InfixOperatorImpl("*", left, right, metadata)
 
 /** Represents a conditional 'if' expression in an AST.
   *
@@ -174,12 +176,12 @@ case class Times[A](
   *   The optional metadata associated with this conditional expression.
   */
 case class If[A](
-    predicate: Expression[A],
-    thenBranch: Expression[A],
-    elseBranch: Expression[A],
+    override val predicate: Expression[A],
+    override val thenBranch: Expression[A],
+    override val elseBranch: Expression[A],
     override val metadata: Option[A] = None
 ) extends Expression[A]
-    with IfImpl(predicate, thenBranch, elseBranch)
+    with ternary.If(predicate, thenBranch, elseBranch, metadata)
 
 /** Represents a 'let' expression in an AST.
   *
@@ -194,6 +196,10 @@ case class If[A](
   * @param metadata
   *   The optional metadata associated with this 'let' expression.
   */
-case class Let[A](sym: String, expr: Expression[A], body: Expression[A], override val metadata: Option[A] = None)
-    extends Expression[A]
-    with LetImpl(sym, expr, body)
+case class Let[A](
+    override val sym: String,
+    override val expr: Expression[A],
+    override val body: Expression[A],
+    override val metadata: Option[A] = None
+) extends Expression[A]
+    with ternary.Let(sym, expr, body, metadata)

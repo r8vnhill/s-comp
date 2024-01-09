@@ -42,6 +42,30 @@ class CompilerTest extends AbstractScumTest with BeforeAndAfterEach with Compile
       (Doubled(IdLiteral("a")), Doubled(IdLiteral("a", Some(0)), Some(1))),
       (Doubled(Doubled(IdLiteral("a"))), Doubled(Doubled(IdLiteral("a", Some(0)), Some(1)), Some(2))),
       (Plus(IdLiteral("a"), IdLiteral("b")), Plus(IdLiteral("a", Some(0)), IdLiteral("b", Some(1)), Some(2))),
+      (
+        Plus(Plus(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")),
+        Plus(Plus(IdLiteral("a", Some(0)), IdLiteral("b", Some(1)), Some(2)), IdLiteral("c", Some(3)), Some(4))
+      ),
+      (Minus(IdLiteral("a"), IdLiteral("b")), Minus(IdLiteral("a", Some(0)), IdLiteral("b", Some(1)), Some(2))),
+      (
+        Minus(Minus(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")),
+        Minus(Minus(IdLiteral("a", Some(0)), IdLiteral("b", Some(1)), Some(2)), IdLiteral("c", Some(3)), Some(4))
+      ),
+      (Times(IdLiteral("a"), IdLiteral("b")), Times(IdLiteral("a", Some(0)), IdLiteral("b", Some(1)), Some(2))),
+      (
+        Times(Times(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")),
+        Times(Times(IdLiteral("a", Some(0)), IdLiteral("b", Some(1)), Some(2)), IdLiteral("c", Some(3)), Some(4))
+      ),
+      (If(IdLiteral("a"), IdLiteral("b"), IdLiteral("c")), If(IdLiteral("a", Some(0)), IdLiteral("b", Some(1)), IdLiteral("c", Some(2)), Some(3))),
+      (
+        If(If(IdLiteral("a"), IdLiteral("b"), IdLiteral("c")), IdLiteral("d"), IdLiteral("e")),
+        If(If(IdLiteral("a", Some(0)), IdLiteral("b", Some(1)), IdLiteral("c", Some(2)), Some(3)), IdLiteral("d", Some(4)), IdLiteral("e", Some(5)), Some(6))
+      ),
+      (Let("a", IdLiteral("b"), IdLiteral("c")), Let("a", IdLiteral("b", Some(0)), IdLiteral("c", Some(1)), Some(2))),
+      (
+        Let("a", Let("b", IdLiteral("c"), IdLiteral("d")), IdLiteral("e")),
+        Let("a", Let("b", IdLiteral("c", Some(0)), IdLiteral("d", Some(1)), Some(2)), IdLiteral("e", Some(3)), Some(4))
+      ),
     )
     forAll(expressions) { (expr, expected) =>
       val annotated = compiler.annotate(expr)
