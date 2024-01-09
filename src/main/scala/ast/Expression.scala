@@ -30,9 +30,9 @@ sealed trait Literal[A] extends Expression[A]
   * @param metadata
   *   The optional metadata associated with this numeric literal.
   */
-case class NumericLiteral[A](n: Long, override val metadata: Option[A] = None)
+case class NumericLiteral[A](override val n: Long, override val metadata: Option[A] = None)
     extends Literal[A]
-    with literal.Numeric(n)
+    with literal.Numeric(n, metadata)
 
 /** Represents an identifier literal expression in an AST.
   *
@@ -43,7 +43,9 @@ case class NumericLiteral[A](n: Long, override val metadata: Option[A] = None)
   * @param metadata
   *   The optional metadata associated with this identifier literal.
   */
-case class IdLiteral[A](sym: String, override val metadata: Option[A] = None) extends Literal[A] with literal.Id(sym)
+case class IdLiteral[A](sym: String, override val metadata: Option[A] = None)
+    extends Literal[A]
+    with literal.Id(sym, metadata)
 
 /** Base trait for unary operation expressions in an AST.
   *
@@ -65,7 +67,7 @@ sealed trait UnaryOperation[A](val expr: Expression[A]) extends Expression[A]
   */
 case class Decrement[A](override val expr: Expression[A], override val metadata: Option[A] = None)
     extends UnaryOperation[A](expr)
-    with unary.DecrementImpl(expr)
+    with unary.Decrement[A](expr, metadata)
 
 /** Represents an 'increment' unary operation in an AST.
   *
@@ -78,7 +80,7 @@ case class Decrement[A](override val expr: Expression[A], override val metadata:
   */
 case class Increment[A](override val expr: Expression[A], override val metadata: Option[A] = None)
     extends UnaryOperation[A](expr)
-    with unary.IncrementImpl(expr)
+    with unary.Increment(expr, metadata)
 
 /** Represents a 'doubled' unary operation in an AST.
   *
@@ -91,7 +93,7 @@ case class Increment[A](override val expr: Expression[A], override val metadata:
   */
 case class Doubled[A](override val expr: Expression[A], override val metadata: Option[A] = None)
     extends UnaryOperation[A](expr)
-    with unary.DoubledImpl(expr)
+    with unary.Doubled(expr, metadata)
 
 /** Base trait for binary operation expressions in an AST.
   *

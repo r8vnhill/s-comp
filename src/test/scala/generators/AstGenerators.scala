@@ -37,12 +37,11 @@ trait AstGenerators extends CommonGenerators {
     idLiteral <- Gen.oneOf(environment.boundNames.toSeq).map(IdLiteral[Int](_, None))
   } yield idLiteral
 
-  def generateTerminal(environment: Environment): Gen[Expression[Int]] =
-    Gen.frequency(
-      (1, generateNumericLiteral()),
-      (if (environment.boundNames.isEmpty) 0 else 1, generateIdLiteral(environment))
-    )
-
+  def generateTerminal(environment: Environment): Gen[Expression[Int]] = if (environment.isEmpty) {
+    generateNumericLiteral()
+  } else {
+    Gen.oneOf(generateNumericLiteral(), generateIdLiteral(environment))
+  }
   def generateIncrement(maxDepth: Int = 10, environment: Environment): Gen[Increment[Int]] = for {
     expr <- generateExpression(maxDepth - 1, environment)
     inc  <- Gen.const(Increment(expr))
@@ -77,7 +76,7 @@ trait AstGenerators extends CommonGenerators {
 
   def generateExpression(
       maxDepth: Int = 10,
-      environment: Environment = Environment("ZERO" -> 0)
+      environment: Environment = Environment.empty
   ): Gen[Expression[Int]] = for {
     expr <- maxDepth match {
       case 0 => generateTerminal(environment)

@@ -90,10 +90,13 @@ package object compiler {
   /** Annotates a unary operation expression in an abstract syntax tree (AST).
     *
     * This method is responsible for annotating unary operation expressions, such as `Decrement`, `Increment`, and
-    * `Doubled`. Each unary operation consists of a single operand expression (`sym`). The method assigns a unique
-    * integer tag to the unary operation expression. This annotation process is crucial for maintaining the unique
-    * identification of each expression in the AST, particularly for unary operations which are common in many
-    * programming constructs.
+    * `Doubled`. Each unary operation consists of a single operand expression. The method annotates this operand
+    * expression and then assigns a unique integer tag to the unary operation expression. This annotation process is
+    * crucial for maintaining the unique identification of each expression in the AST, particularly for unary operations
+    * which are common in many programming constructs.
+    *
+    * The operand expression of the unary operation is annotated recursively before assigning the tag to the unary
+    * operation itself. This ensures that the entire subtree rooted at the operand is also properly annotated.
     *
     * @param op
     *   The unary operation expression to be annotated.
@@ -104,10 +107,11 @@ package object compiler {
     *   index is incremented after annotating the unary operation.
     */
   private def annotateUnaryOperation(op: UnaryOperation[Int], cur: Int): (UnaryOperation[Int], Int) = {
+    val (exprAnnotated, curAnnotated) = annotateNode(op.expr, cur)
     op match {
-      case Decrement(sym, _) => (Decrement(sym, cur), cur + 1)
-      case Increment(sym, _) => (Increment(sym, cur), cur + 1)
-      case Doubled(sym, _)   => (Doubled(sym, cur), cur + 1)
+      case Decrement(expr, _) => (Decrement(exprAnnotated, curAnnotated), curAnnotated + 1)
+      case Increment(expr, _) => (Increment(exprAnnotated, curAnnotated), curAnnotated + 1)
+      case Doubled(expr, _)   => (Doubled(exprAnnotated, curAnnotated), curAnnotated + 1)
     }
   }
 

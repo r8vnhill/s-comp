@@ -20,7 +20,7 @@ package ast.unary
   * @param expr
   *   The expression to be decremented, represented as an `ast.Expression[_]`.
   */
-trait DecrementImpl(expr: ast.Expression[_]) {
+private[ast] trait Decrement[A](expr: ast.Expression[A], metadata: Option[A]) {
 
   /** Provides a string representation of the decrement operation.
     *
@@ -32,5 +32,7 @@ trait DecrementImpl(expr: ast.Expression[_]) {
     * @return
     *   A string representing the decrement operation on the expression.
     */
-  override def toString: String = s"--($expr)"
+  override def toString: String = toStringMode match
+    case ToStringMode.NORMAL => s"--($expr)"
+    case ToStringMode.DEBUG => s"Decrement(expr=$expr, metadata=$metadata)"
 }

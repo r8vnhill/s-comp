@@ -1,29 +1,39 @@
 package cl.ravenhill.scum
 package ast.literal
 
-/** Trait for representing numeric literals in an abstract syntax tree (AST).
+import cl.ravenhill.scum.ToStringMode.{DEBUG, NORMAL}
+
+/** Trait for representing numeric literals in an abstract syntax tree (AST) with optional metadata.
   *
-  * `NumImpl` is a trait designed to encapsulate a numeric literal, commonly used in various programming languages and
-  * represented here as an integer value. This trait is part of the `ast.terminal` package, indicating its role in
-  * representing terminal (leaf) nodes in an AST, specifically for numeric values.
+  * The `Numeric` trait is designed to encapsulate a numeric literal, commonly represented as a long integer value. It
+  * is a part of the `ast.terminal` package, indicating its role in representing terminal (leaf) nodes in an AST,
+  * specifically for numeric values. The inclusion of metadata extends its utility by allowing the attachment of
+  * additional information relevant to each numeric literal, such as type annotations, source code locations, or other
+  * contextual data.
   *
-  * The trait provides a simple and direct way to represent integer literals in Scala-based representations of
-  * programming languages or interpreters. It takes a single parameter `n`, which is the integer value of the numeric
-  * literal.
+  * In addition to the numeric value `n`, this trait provides a custom `toString` method that can output different
+  * representations based on the global `toStringMode`. This feature makes it adaptable for various purposes, including
+  * debugging, logging, or displaying the value in different formats.
   *
   * @param n
-  *   The integer value of the numeric literal.
+  *   The long integer value of the numeric literal.
+  * @param metadata
+  *   Optional metadata associated with the numeric literal.
   */
-private[ast] trait Numeric(n: Long) {
+private[ast] trait Numeric(val n: Long, val metadata: Option[_]) {
 
-  /** Returns a string representation of the numeric literal.
+  /** Returns a string representation of the numeric literal, potentially including metadata.
     *
-    * This method overrides the standard `toString` method to return the string representation of the integer value `n`.
-    * It provides a straightforward way to convert the numeric literal to a string format, which can be useful for
-    * debugging, logging, or displaying the value in a human-readable form.
+    * This method overrides the standard `toString` method. Depending on the global `toStringMode`, it either returns
+    * just the numeric value `n` or a more detailed representation including both `n` and `metadata`. This behavior
+    * allows for flexible and informative representations of numeric literals, which is particularly useful for
+    * debugging or detailed logging.
     *
     * @return
-    *   A string representation of the numeric literal.
+    *   A string representation of the numeric literal, with detail level depending on `toStringMode`.
     */
-  override def toString: String = n.toString
+  override def toString: String = toStringMode match {
+    case ToStringMode.NORMAL => n.toString
+    case ToStringMode.DEBUG  => s"Numeric(n=$n, metadata=$metadata)"
+  }
 }
