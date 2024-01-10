@@ -109,9 +109,9 @@ package object compiler {
   private def annotateUnaryOperation(op: UnaryOperation[Int], cur: Int): (UnaryOperation[Int], Int) = {
     val (exprAnnotated, curAnnotated) = annotateNode(op.expr, cur)
     op match {
-      case Decrement(expr, _) => (Decrement(exprAnnotated, curAnnotated), curAnnotated + 1)
-      case Increment(expr, _) => (Increment(exprAnnotated, curAnnotated), curAnnotated + 1)
-      case Doubled(expr, _)   => (Doubled(exprAnnotated, curAnnotated), curAnnotated + 1)
+      case Decrement(_, _) => (Decrement(exprAnnotated, curAnnotated), curAnnotated + 1)
+      case Increment(_, _) => (Increment(exprAnnotated, curAnnotated), curAnnotated + 1)
+      case Doubled(_, _)   => (Doubled(exprAnnotated, curAnnotated), curAnnotated + 1)
     }
   }
 
@@ -187,5 +187,112 @@ package object compiler {
     val (exprAnnotated, exprCur) = annotateNode(letExpr.expr, cur)
     val (bodyAnnotated, bodyCur) = annotateNode(letExpr.body, exprCur)
     (Let(letExpr.sym, exprAnnotated, bodyAnnotated, bodyCur), bodyCur + 1)
+  }
+
+  extension [A](expression: Expression[A]) {
+
+    /** Determines if an expression is immediate within the context of the compiler.
+      *
+      * This method assesses whether a given expression is classified as an immediate expression. In the context of this
+      * compiler, immediate expressions are those that are either numerical literals or identifier literals, as they can
+      * be evaluated or referenced directly without further computation or dereferencing.
+      *
+      * @return
+      *   `true` if the expression is a `NumericLiteral` or an `IdLiteral`, indicating that it is immediate; `false`
+      *   otherwise.
+      */
+    private[compiler] def isImmediate: Boolean = expression match {
+      case NumericLiteral(_, _) | IdLiteral(_, _) => true
+      case _                                      => false
+    }
+
+    /** Determines if an expression is in A-Normal Form (ANF).
+      *
+      * This method checks whether a given expression conforms to the rules of A-Normal Form (ANF) within the compiler's
+      * context. ANF is a canonical form of representing expressions where complex operations are broken down into
+      * simpler ones, typically using 'Let' bindings. In ANF, every argument of an operation must be a simple
+      * expression.
+      *
+      * The method evaluates different types of expressions:
+      *   - For `UnaryOperation`, it checks if the operand is an immediate expression.
+      *   - For `BinaryOperation`, it verifies that both the left and right operands are immediate expressions.
+      *   - For `Let` expressions, it ensures that the bound expression is immediate, and the body of the 'Let' is also
+      *     in ANF.
+      *   - For `If` expressions, it checks that the predicate is immediate, and both the 'then' and 'else' branches are
+      *     in ANF.
+      *   - For other types of expressions, it defaults to checking if they are immediate.
+      *
+      * @return
+      *   `true` if the expression is in ANF, `false` otherwise.
+      */
+    private[compiler] def isAnf: Boolean = expression match {
+      case e: UnaryOperation[A]                     => e.expr.isImmediate
+      case e: BinaryOperation[A]                    => e.left.isImmediate && e.right.isImmediate
+      case Let(_, expr, body, _)                    => expr.isImmediate && body.isAnf
+      case If(predicate, thenBranch, elseBranch, _) => predicate.isAnf && thenBranch.isAnf && elseBranch.isAnf
+      case _                                        => expression.isImmediate
+    }
+
+    def toAnf: Expression[A] = {
+      def helper(
+          expr: Expression[A],
+          context: List[(String, Expression[A])],
+          counter: Int
+      ): (Expression[A], List[(String, Expression[A])], Int) = expr match {
+        case NumericLiteral(_, _) | IdLiteral(_, _) => (expr, context, counter)
+        case Increment(inner, _)   => transformUnaryOperation(inner, context, counter, "inc", Increment(_))
+        case Decrement(inner, _)   => transformUnaryOperation(inner, context, counter, "dec", Decrement(_))
+        case Doubled(inner, _)     => transformUnaryOperation(inner, context, counter, "double", Doubled(_))
+        case Plus(left, right, _)  => transformBinaryOperation(left, right, context, counter, "plus", Plus(_, _))
+        case Minus(left, right, _) => transformBinaryOperation(left, right, context, counter, "minus", Minus(_, _))
+        case Times(left, right, _) => transformBinaryOperation(left, right, context, counter, "times", Times(_, _))
+        case Let(name, expr, body, _) =>
+          val (exprAns, exprContext, newCounter)   = helper(expr, context, counter)
+          val (bodyAns, bodyContext, finalCounter) = helper(body, exprContext, newCounter)
+          (Let(name, exprAns, bodyAns), bodyContext, finalCounter)
+        case If(predicate, thenBranch, elseBranch, _) =>
+          val (predicateAns, predicateContext, counterAfterPredicate) = helper(predicate, context, counter)
+          val (thenAns, thenContext, counterAfterThen) = helper(thenBranch, predicateContext, counterAfterPredicate)
+          val (elseAns, elseContext, counterAfterElse) = helper(elseBranch, thenContext, counterAfterThen)
+          (If(predicateAns, thenAns, elseAns), elseContext, counterAfterElse)
+      }
+
+      def transformUnaryOperation(
+          inner: Expression[A],
+          context: List[(String, Expression[A])],
+          counter: Int,
+          opName: String,
+          constructor: Expression[A] => UnaryOperation[A]
+      ): (Expression[A], List[(String, Expression[A])], Int) = {
+        val (innerAns, innerContext, newCounter) = helper(inner, context, counter)
+        val temp                                 = s"${opName}$$$newCounter"
+        val newExpr                              = IdLiteral[A](temp)
+        val newContext                           = innerContext :+ (temp -> constructor(innerAns))
+        (newExpr, newContext, newCounter + 1)
+      }
+
+      def transformBinaryOperation(
+          left: Expression[A],
+          right: Expression[A],
+          context: List[(String, Expression[A])],
+          counter: Int,
+          opName: String,
+          constructor: (Expression[A], Expression[A]) => BinaryOperation[A]
+      ): (Expression[A], List[(String, Expression[A])], Int) = {
+        val (leftAns, leftContext, counterAfterLeft)    = helper(left, context, counter)
+        val (rightAns, rightContext, counterAfterRight) = helper(right, leftContext, counterAfterLeft)
+        val temp                                        = s"${opName}$$$counterAfterRight"
+        val newExpr                                     = IdLiteral[A](temp)
+        val newContext                                  = rightContext :+ (temp -> constructor(leftAns, rightAns))
+        (newExpr, newContext, counterAfterRight + 1)
+      }
+
+      // Wrap the expression with let-bindings based on the context
+      def wrapWithLets(expr: Expression[A], context: List[(String, Expression[A])]): Expression[A] =
+        context.foldRight(expr) { case ((name, e), acc) => Let(name, e, acc) }
+
+      val (anfExpr, context, _) = helper(expression, Nil, 0)
+      wrapWithLets(anfExpr, context)
+    }
   }
 }

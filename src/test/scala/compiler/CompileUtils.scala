@@ -1,4 +1,5 @@
 package cl.ravenhill.scum
+package compiler
 
 import java.io.{File, PrintWriter}
 import java.nio.file.{Files, Path, Paths}
