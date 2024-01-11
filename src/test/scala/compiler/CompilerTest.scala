@@ -1,7 +1,7 @@
 package cl.ravenhill.scum
 package compiler
 
-import ToStringMode.DEBUG
+import ToStringMode.{DEBUG, NORMAL}
 import ast.*
 import generators.AstGenerators
 
@@ -119,10 +119,74 @@ class CompilerTest extends AbstractScumTest with BeforeAndAfterEach with Compile
       (If(IdLiteral("a"), IdLiteral("b"), IdLiteral("c")), true),
       (If(If(IdLiteral("a"), IdLiteral("b"), IdLiteral("c")), IdLiteral("d"), IdLiteral("e")), false),
       (Let("a", IdLiteral("b"), IdLiteral("c")), true),
-      (Let("a", Let("b", IdLiteral("c"), IdLiteral("d")), IdLiteral("e")), false)
+      (Let("a", Let("b", IdLiteral("c"), IdLiteral("d")), IdLiteral("e")), true)
     )
     forAll(expressions) { (expr, expected) =>
       expr.isAnf should be(expected)
+    }
+  }
+
+  "Transforming an expression to ANF" - {
+    "returns the same expression when it is immediate" in {
+      forAll(generateTerminal(Environment("x" -> 0))) { expr =>
+        expr.isAnf should be(true)
+        expr.toAnf should be(expr)
+      }
+    }
+
+    "returns the expected expression for the given examples" in {
+      val expressions = Table(
+        ("expr", "expected"),
+        ( 
+          Decrement(Decrement(IdLiteral("a"))),
+          Let("decrement$0", Decrement(IdLiteral("a")), Decrement(IdLiteral("decrement$0")))
+        ),
+        (
+          Decrement(Decrement(Decrement(IdLiteral("a")))),
+          Let(
+            "decrement$1",
+            Let("decrement$0", Decrement(IdLiteral("a")), Decrement(IdLiteral("decrement$0"))),
+            Decrement(IdLiteral("decrement$1"))
+          )
+        ),
+        (
+          Increment(Increment(IdLiteral("a"))),
+          Let("increment$0", Increment(IdLiteral("a")), Increment(IdLiteral("increment$0")))
+        ),
+        (
+          Increment(Increment(Increment(IdLiteral("a")))),
+          Let(
+            "increment$1",
+            Let("increment$0", Increment(IdLiteral("a")), Increment(IdLiteral("increment$0"))),
+            Increment(IdLiteral("increment$1"))
+          )
+        ),
+        (
+          Doubled(Doubled(IdLiteral("a"))),
+          Let("doubled$0", Doubled(IdLiteral("a")), Doubled(IdLiteral("doubled$0")))
+        ),
+        (
+          Doubled(Doubled(Doubled(IdLiteral("a")))),
+          Let(
+            "doubled$1",
+            Let("doubled$0", Doubled(IdLiteral("a")), Doubled(IdLiteral("doubled$0"))),
+            Doubled(IdLiteral("doubled$1"))
+          )
+        ),
+        (
+          Plus(Plus(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")),
+          Let(
+            "plus$0",
+            Plus(IdLiteral("a"), IdLiteral("b")),
+            Plus(IdLiteral("plus$0"), IdLiteral("c"))
+          )
+        )
+      )
+      toStringMode = NORMAL
+      forAll(expressions) { (expr, expected) =>
+        expected.isAnf should be(true)
+        expr.toAnf should be(expected)
+      }
     }
   }
 }

@@ -228,71 +228,89 @@ package object compiler {
     private[compiler] def isAnf: Boolean = expression match {
       case e: UnaryOperation[A]                     => e.expr.isImmediate
       case e: BinaryOperation[A]                    => e.left.isImmediate && e.right.isImmediate
-      case Let(_, expr, body, _)                    => expr.isImmediate && body.isAnf
+      case Let(_, expr, body, _)                    => expr.isAnf && body.isAnf
       case If(predicate, thenBranch, elseBranch, _) => predicate.isAnf && thenBranch.isAnf && elseBranch.isAnf
       case _                                        => expression.isImmediate
     }
 
     def toAnf: Expression[A] = {
-      def helper(
-          expr: Expression[A],
-          context: List[(String, Expression[A])],
-          counter: Int
-      ): (Expression[A], List[(String, Expression[A])], Int) = expr match {
-        case NumericLiteral(_, _) | IdLiteral(_, _) => (expr, context, counter)
-        case Increment(inner, _)   => transformUnaryOperation(inner, context, counter, "inc", Increment(_))
-        case Decrement(inner, _)   => transformUnaryOperation(inner, context, counter, "dec", Decrement(_))
-        case Doubled(inner, _)     => transformUnaryOperation(inner, context, counter, "double", Doubled(_))
-        case Plus(left, right, _)  => transformBinaryOperation(left, right, context, counter, "plus", Plus(_, _))
-        case Minus(left, right, _) => transformBinaryOperation(left, right, context, counter, "minus", Minus(_, _))
-        case Times(left, right, _) => transformBinaryOperation(left, right, context, counter, "times", Times(_, _))
-        case Let(name, expr, body, _) =>
-          val (exprAns, exprContext, newCounter)   = helper(expr, context, counter)
-          val (bodyAns, bodyContext, finalCounter) = helper(body, exprContext, newCounter)
-          (Let(name, exprAns, bodyAns), bodyContext, finalCounter)
-        case If(predicate, thenBranch, elseBranch, _) =>
-          val (predicateAns, predicateContext, counterAfterPredicate) = helper(predicate, context, counter)
-          val (thenAns, thenContext, counterAfterThen) = helper(thenBranch, predicateContext, counterAfterPredicate)
-          val (elseAns, elseContext, counterAfterElse) = helper(elseBranch, thenContext, counterAfterThen)
-          (If(predicateAns, thenAns, elseAns), elseContext, counterAfterElse)
+      val (newExpr, _, _) = transformExpressionToAnf(expression, List.empty, 0)
+      newExpr
+    }
+  }
+
+  private def transformExpressionToAnf[A](
+      expr: Expression[A],
+      context: List[(String, Expression[A])],
+      counter: Int
+  ): (Expression[A], List[(String, Expression[A])], Int) = expr match {
+    case immediate @ (NumericLiteral(_, _) | IdLiteral(_, _)) => (immediate, context, counter)
+    case e: UnaryOperation[A]                                 => transformUnaryOperationToAnf(e, context, counter)
+    case e: BinaryOperation[A]                                => transformBinaryOperationToAnf(e, context, counter)
+  }
+
+  /** Transforms a unary operation into A-Normal Form (ANF).
+    *
+    * This method processes a unary operation and transforms it into ANF. The transformation involves ensuring that the
+    * operand of the unary operation is an immediate expression. If the operand is already immediate, the operation
+    * itself is returned as-is. Otherwise, the operand is first transformed into ANF, and a `Let` binding is introduced
+    * to handle the operation on the transformed operand.
+    *
+    * @param op
+    *   The unary operation to be transformed.
+    * @param context
+    *   The current transformation context, represented as a list of variable bindings in the form of '(variable name,
+    *   expression)'.
+    * @param counter
+    *   An integer counter used to generate unique variable names for new `Let` bindings.
+    * @return
+    *   A tuple containing the transformed expression in ANF, the updated context, and the updated counter. The
+    *   transformed expression is either the original operation (if the operand is immediate) or a `Let` binding (if the
+    *   operand is not immediate).
+    */
+  private def transformUnaryOperationToAnf[A](
+      op: UnaryOperation[A],
+      context: List[(String, Expression[A])],
+      counter: Int
+  ): (Expression[A], List[(String, Expression[A])], Int) = {
+    if (op.expr.isImmediate) {
+      (op, context, counter)
+    } else {
+      val (newExpr, newContext, newCounter) = transformExpressionToAnf(op.expr, context, counter)
+      val tempVar                           = s"${op.getClass.getSimpleName.toLowerCase}$$$newCounter"
+      val newUnaryOp = op match {
+        case Decrement(_, _) => Decrement(IdLiteral[A](tempVar))
+        case Increment(_, _) => Increment(IdLiteral[A](tempVar))
+        case Doubled(_, _)   => Doubled(IdLiteral[A](tempVar))
       }
+      val updatedContext = newContext :+ (tempVar -> newUnaryOp)
+      (Let(tempVar, newExpr, newUnaryOp), updatedContext, newCounter + 1)
+    }
+  }
 
-      def transformUnaryOperation(
-          inner: Expression[A],
-          context: List[(String, Expression[A])],
-          counter: Int,
-          opName: String,
-          constructor: Expression[A] => UnaryOperation[A]
-      ): (Expression[A], List[(String, Expression[A])], Int) = {
-        val (innerAns, innerContext, newCounter) = helper(inner, context, counter)
-        val temp                                 = s"${opName}$$$newCounter"
-        val newExpr                              = IdLiteral[A](temp)
-        val newContext                           = innerContext :+ (temp -> constructor(innerAns))
-        (newExpr, newContext, newCounter + 1)
-      }
-
-      def transformBinaryOperation(
-          left: Expression[A],
-          right: Expression[A],
-          context: List[(String, Expression[A])],
-          counter: Int,
-          opName: String,
-          constructor: (Expression[A], Expression[A]) => BinaryOperation[A]
-      ): (Expression[A], List[(String, Expression[A])], Int) = {
-        val (leftAns, leftContext, counterAfterLeft)    = helper(left, context, counter)
-        val (rightAns, rightContext, counterAfterRight) = helper(right, leftContext, counterAfterLeft)
-        val temp                                        = s"${opName}$$$counterAfterRight"
-        val newExpr                                     = IdLiteral[A](temp)
-        val newContext                                  = rightContext :+ (temp -> constructor(leftAns, rightAns))
-        (newExpr, newContext, counterAfterRight + 1)
-      }
-
-      // Wrap the expression with let-bindings based on the context
-      def wrapWithLets(expr: Expression[A], context: List[(String, Expression[A])]): Expression[A] =
-        context.foldRight(expr) { case ((name, e), acc) => Let(name, e, acc) }
-
-      val (anfExpr, context, _) = helper(expression, Nil, 0)
-      wrapWithLets(anfExpr, context)
+  private def transformBinaryOperationToAnf[A](
+      op: BinaryOperation[A],
+      context: List[(String, Expression[A])],
+      counter: Int
+  ): (Expression[A], List[(String, Expression[A])], Int) = {
+    if (op.left.isImmediate && op.right.isImmediate) {
+      (op, context, counter)
+    } else {
+      val (leftExpr, leftContext, leftCounter) = transformExpressionToAnf(op.left, context, counter)
+      val tempVar                              = s"${op.getClass.getSimpleName.toLowerCase}$$$leftCounter"
+      (
+        Let(
+          tempVar,
+          leftExpr,
+          op match {
+            case _: Plus[A]  => Plus(IdLiteral[A](tempVar), op.right.toAnf)
+            case _: Minus[A] => Minus(IdLiteral[A](tempVar), op.right.toAnf)
+            case _: Times[A] => Times(IdLiteral[A](tempVar), op.right.toAnf)
+          }
+        ),
+        leftContext,
+        leftCounter + 1
+      )
     }
   }
 }
