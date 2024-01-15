@@ -125,7 +125,7 @@ class CompilerTest extends AbstractScumTest with BeforeAndAfterEach with Compile
       (Times(IdLiteral("a"), IdLiteral("b")), true),
       (Times(Times(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")), false),
       (If(IdLiteral("a"), IdLiteral("b"), IdLiteral("c")), true),
-      (If(If(IdLiteral("a"), IdLiteral("b"), IdLiteral("c")), IdLiteral("d"), IdLiteral("e")), false),
+      (If(If(IdLiteral("a"), IdLiteral("b"), IdLiteral("c")), IdLiteral("d"), IdLiteral("e")), true),
       (Let("a", IdLiteral("b"), IdLiteral("c")), true),
       (Let("a", Let("b", IdLiteral("c"), IdLiteral("d")), IdLiteral("e")), true)
     )
@@ -143,27 +143,10 @@ class CompilerTest extends AbstractScumTest with BeforeAndAfterEach with Compile
     }
 
     "returns the expected expression for the given examples" in {
-      val expressions = Table(
-        ("expr"),
-        Decrement(Decrement(IdLiteral("a"))),
-        Decrement(Decrement(Decrement(IdLiteral("a")))),
-        Increment(Increment(IdLiteral("a"))),
-        Increment(Increment(Increment(IdLiteral("a")))),
-        Doubled(Doubled(IdLiteral("a"))),
-        Doubled(Doubled(Doubled(IdLiteral("a")))),
-        Plus(Plus(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")),
-        Plus(Plus("a", "b"), Plus("c", "d")),
-        Minus(Minus(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")),
-        Minus(Minus("a", "b"), Minus("c", "d")),
-        Times(Times(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")),
-        Times(Times("a", "b"), Times("c", "d")),
-        Let("a", Let("b", IdLiteral("c"), IdLiteral("d")), IdLiteral("e")),
-        Let("a", Let("b", "c", "d"), Let("e", "f", "g")),
-      )
       toStringMode = NORMAL
-      forAll(expressions) { (expr) =>
-        val actual = expr.toAnf
-        actual.isAnf should be(true)
+      forAll(generateExpression()) { expr =>
+        val anf = expr.toAnf
+        anf.isAnf should be(true)
       }
     }
   }

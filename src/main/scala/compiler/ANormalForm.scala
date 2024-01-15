@@ -12,6 +12,8 @@ private[compiler] def transformExpressionToAnf[A](
   case e: UnaryOperation[A]                                 => transformUnaryOperationToAnf(e, context, counter)
   case e: BinaryOperation[A]                                => transformBinaryOperationToAnf(e, context, counter)
   case Let(sym, expr, body, _) => transformLetBindingToAnf(context, counter, sym, expr, body)
+  case If(cond, thenExpr, elseExpr, _) =>
+    transformIfExpressionToAnf(If(cond, thenExpr, elseExpr), context, counter)
 }
 
 /** Transforms a unary operation into A-Normal Form (ANF).
@@ -129,4 +131,40 @@ private def transformLetBindingToAnf[A](
   val updatedContext                        = newContext :+ (sym -> newExpr)
   val (newBody, finalContext, finalCounter) = transformExpressionToAnf(body, updatedContext, newCounter)
   (newBody, finalContext, finalCounter)
+}
+
+/** Transforms an If expression into A-Normal Form (ANF).
+  *
+  * This method processes an If expression, ensuring that its predicate, then-branch, and else-branch are all in ANF. It
+  * starts by transforming the predicate into ANF, updates the context with this transformation, and then proceeds to
+  * transform the then-branch and else-branch in the updated context.
+  *
+  * After the transformation, a new If expression is constructed where the predicate is replaced with a temporary
+  * variable that holds the result of the transformed predicate. This approach ensures that the predicate in the If
+  * expression conforms to the rules of ANF.
+  *
+  * @param expr
+  *   The If expression to be transformed.
+  * @param context
+  *   The current transformation context, represented as a list of variable bindings in the form of '(variable name,
+  *   expression)'. This context is used to track changes and transformations made to expressions during the ANF
+  *   conversion.
+  * @param counter
+  *   An integer counter used to generate unique variable names for new temporary variables. This counter is incremented
+  *   as new variables are introduced during the transformation.
+  * @return
+  *   A tuple containing the transformed If expression in ANF, the final updated context after processing the predicate,
+  *   then-branch, and else-branch, and the final counter value.
+  */
+private def transformIfExpressionToAnf[A](
+    expr: If[A],
+    context: List[(String, Expression[A])],
+    counter: Int
+): (Expression[A], List[(String, Expression[A])], Int) = {
+  val (newCond, newContext, newCounter)   = transformExpressionToAnf(expr.predicate, context, counter)
+  val (newThen, thenContext, thenCounter) = transformExpressionToAnf(expr.thenBranch, newContext, newCounter)
+  val (newElse, elseContext, elseCounter) = transformExpressionToAnf(expr.elseBranch, thenContext, thenCounter)
+  val tempVar                             = s"if$$$elseCounter"
+  val updatedContext                      = elseContext :+ (tempVar -> newCond)
+  (If(IdLiteral[A](tempVar), newThen, newElse), updatedContext, elseCounter + 1)
 }
