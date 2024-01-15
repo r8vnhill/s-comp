@@ -17,8 +17,8 @@ import cl.ravenhill.scum.ast.Expression
   *
   * @example
   *   {{{
-  * object LetExample extends Let("x", Num(42), Var("x"))
-  * println(LetExample) // Outputs: (42).let { x -> x }
+  *     object LetExample extends Let("x", Num(42), Var("x"))
+  *     println(LetExample) // Outputs: (42).let { x -> x }
   *   }}}
   * @param sym
   *   The symbol to which the expression is bound.
@@ -29,7 +29,7 @@ import cl.ravenhill.scum.ast.Expression
   * @param metadata
   *   Optional additional information related to the 'let' expression.
   */
-trait Let(val sym: String, val expr: Expression[_], val body: Expression[_], val metadata: Option[_]) {
+private[ast] trait Let(val sym: String, val expr: Expression[_], val body: Expression[_], val metadata: Option[_]) {
 
   /** Provides a string representation of the 'let' binding expression.
     *

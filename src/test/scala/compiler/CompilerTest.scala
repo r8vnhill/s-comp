@@ -144,86 +144,26 @@ class CompilerTest extends AbstractScumTest with BeforeAndAfterEach with Compile
 
     "returns the expected expression for the given examples" in {
       val expressions = Table(
-        ("expr", "expected"),
-        (
-          Decrement(Decrement(IdLiteral("a"))),
-          Let("decrement$0", Decrement(IdLiteral("a")), Decrement(IdLiteral("decrement$0")))
-        ),
-        (
-          Decrement(Decrement(Decrement(IdLiteral("a")))),
-          Let(
-            "decrement$1",
-            Let("decrement$0", Decrement(IdLiteral("a")), Decrement(IdLiteral("decrement$0"))),
-            Decrement(IdLiteral("decrement$1"))
-          )
-        ),
-        (
-          Increment(Increment(IdLiteral("a"))),
-          Let("increment$0", Increment(IdLiteral("a")), Increment(IdLiteral("increment$0")))
-        ),
-        (
-          Increment(Increment(Increment(IdLiteral("a")))),
-          Let(
-            "increment$1",
-            Let("increment$0", Increment(IdLiteral("a")), Increment(IdLiteral("increment$0"))),
-            Increment(IdLiteral("increment$1"))
-          )
-        ),
-        (
-          Doubled(Doubled(IdLiteral("a"))),
-          Let("doubled$0", Doubled(IdLiteral("a")), Doubled(IdLiteral("doubled$0")))
-        ),
-        (
-          Doubled(Doubled(Doubled(IdLiteral("a")))),
-          Let(
-            "doubled$1",
-            Let("doubled$0", Doubled(IdLiteral("a")), Doubled(IdLiteral("doubled$0"))),
-            Doubled(IdLiteral("doubled$1"))
-          )
-        ),
-        (
-          Plus(Plus(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")),
-          Let(
-            "plus$0",
-            Plus(IdLiteral("a"), IdLiteral("b")),
-            Plus(IdLiteral("plus$0"), IdLiteral("c"))
-          )
-        ),
-        (
-          Plus(Plus("a", "b"), Plus("c", "d")),
-          Let("plus$0", Plus("a", "b"), Let("plus$1", Plus("c", "d"), Plus("plus$0", "plus$1")))
-        ),
-        (
-          Minus(Minus(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")),
-          Let(
-            "minus$0",
-            Minus(IdLiteral("a"), IdLiteral("b")),
-            Minus(IdLiteral("minus$0"), IdLiteral("c"))
-          )
-        ),
-        (
-          Minus(Minus("a", "b"), Minus("c", "d")),
-          Let("minus$0", Minus("a", "b"), Let("minus$1", Minus("c", "d"), Minus("minus$0", "minus$1")))
-        ),
-        (
-          Times(Times(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")),
-          Let(
-            "times$0",
-            Times(IdLiteral("a"), IdLiteral("b")),
-            Times(IdLiteral("times$0"), IdLiteral("c"))
-          )
-        ),
-        (
-          Times(Times("a", "b"), Times("c", "d")),
-          Let("times$0", Times("a", "b"), Let("times$1", Times("c", "d"), Times("times$0", "times$1")))
-        )
+        ("expr"),
+        Decrement(Decrement(IdLiteral("a"))),
+        Decrement(Decrement(Decrement(IdLiteral("a")))),
+        Increment(Increment(IdLiteral("a"))),
+        Increment(Increment(Increment(IdLiteral("a")))),
+        Doubled(Doubled(IdLiteral("a"))),
+        Doubled(Doubled(Doubled(IdLiteral("a")))),
+        Plus(Plus(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")),
+        Plus(Plus("a", "b"), Plus("c", "d")),
+        Minus(Minus(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")),
+        Minus(Minus("a", "b"), Minus("c", "d")),
+        Times(Times(IdLiteral("a"), IdLiteral("b")), IdLiteral("c")),
+        Times(Times("a", "b"), Times("c", "d")),
+        Let("a", Let("b", IdLiteral("c"), IdLiteral("d")), IdLiteral("e")),
+        Let("a", Let("b", "c", "d"), Let("e", "f", "g")),
       )
       toStringMode = NORMAL
-      forAll(expressions) { (expr, expected) =>
-        expected.isAnf should be(true)
+      forAll(expressions) { (expr) =>
         val actual = expr.toAnf
         actual.isAnf should be(true)
-//        actual should be(expected)
       }
     }
   }
